@@ -1,0 +1,263 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}{% if object %}Edit Product{% else %}Add Product{% endif %} — Subhan Super Store{% endblock %}
+{% block page_title %}{% if object %}Edit: {{ object.name }}{% else %}Add New Product{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .formset-row { background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+    .delete-row { cursor: pointer; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'products:product_list' %}" class="text-muted text-decoration-none small">
+        <i class="bi bi-arrow-left me-1"></i> Back to Products
+    </a>
+</div>
+
+<form method="post" enctype="multipart/form-data" novalidate id="product-form">
+{% csrf_token %}
+
+<div class="row g-4">
+
+    <!-- Left Column: Core Details -->
+    <div class="col-lg-8">
+
+        <!-- Basic Info -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2 text-primary"></i>Basic Information</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Product Name <span class="text-danger">*</span></label>
+                    {{ form.name }}
+                    {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">SKU <span class="text-danger">*</span></label>
+                        {{ form.sku }}
+                        {% if form.sku.errors %}<div class="text-danger small mt-1">{{ form.sku.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Barcode</label>
+                        {{ form.barcode }}
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Category <span class="text-danger">*</span></label>
+                        {{ form.category }}
+                        {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-medium">Brand</label>
+                        {{ form.brand }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-text-left me-2 text-info"></i>Description</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Short Description</label>
+                    {{ form.short_description }}
+                </div>
+                <div>
+                    <label class="form-label fw-medium">Full Description</label>
+                    {{ form.description }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Images -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-images me-2 text-success"></i>Product Images</h6>
+            </div>
+            <div class="card-body p-4">
+                {{ image_formset.management_form }}
+                <div id="image-formset">
+                    {% for img_form in image_formset %}
+                    <div class="formset-row row g-2 align-items-center">
+                        {% if img_form.instance.pk %}
+                        <div class="col-auto">
+                            <img src="{{ img_form.instance.image.url }}" height="50" class="rounded border">
+                        </div>
+                        {% endif %}
+                        <div class="col">{{ img_form.image }}</div>
+                        <div class="col-3">{{ img_form.alt_text }}</div>
+                        <div class="col-auto">
+                            <div class="form-check">
+                                {{ img_form.is_primary }}
+                                <label class="form-check-label small">Primary</label>
+                            </div>
+                        </div>
+                        <div class="col-1">{{ img_form.order }}</div>
+                        {% if image_formset.can_delete %}
+                        <div class="col-auto">
+                            <div class="form-check">
+                                {{ img_form.DELETE }}
+                                <label class="form-check-label small text-danger">Remove</label>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% for hidden in img_form.hidden_fields %}{{ hidden }}{% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Variants -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-collection me-2 text-warning"></i>Product Variants</h6>
+            </div>
+            <div class="card-body p-4">
+                {{ variant_formset.management_form }}
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Attribute</th>
+                                <th>Value</th>
+                                <th>SKU Suffix</th>
+                                <th>Price Adj.</th>
+                                <th>Stock</th>
+                                <th>Active</th>
+                                {% if variant_formset.can_delete %}<th>Remove</th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for var_form in variant_formset %}
+                            <tr>
+                                <td>{{ var_form.name }}</td>
+                                <td>{{ var_form.value }}</td>
+                                <td>{{ var_form.sku_suffix }}</td>
+                                <td>{{ var_form.price_adjustment }}</td>
+                                <td>{{ var_form.stock_quantity }}</td>
+                                <td>{{ var_form.is_active }}</td>
+                                {% if variant_formset.can_delete %}
+                                <td>{{ var_form.DELETE }}</td>
+                                {% endif %}
+                                {% for hidden in var_form.hidden_fields %}{{ hidden }}{% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="form-text">Leave blank rows empty — they will be ignored.</div>
+            </div>
+        </div>
+
+    </div><!-- /col-lg-8 -->
+
+    <!-- Right Column: Pricing & Settings -->
+    <div class="col-lg-4">
+
+        <!-- Pricing -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-currency-rupee me-2 text-success"></i>Pricing</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Cost Price <span class="text-danger">*</span></label>
+                    {{ form.cost_price }}
+                    {% if form.cost_price.errors %}<div class="text-danger small mt-1">{{ form.cost_price.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Selling Price <span class="text-danger">*</span></label>
+                    {{ form.selling_price }}
+                    {% if form.selling_price.errors %}<div class="text-danger small mt-1">{{ form.selling_price.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Sale Price <small class="text-muted">(optional)</small></label>
+                    {{ form.sale_price }}
+                </div>
+                <div>
+                    <label class="form-label fw-medium">Unit</label>
+                    {{ form.unit }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tax -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-percent me-2 text-secondary"></i>Tax</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="form-check mb-3">
+                    {{ form.is_taxable }}
+                    <label class="form-check-label fw-medium">Taxable Product</label>
+                </div>
+                <div>
+                    <label class="form-label fw-medium">Tax Rate (%)</label>
+                    {{ form.tax_rate }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-archive me-2 text-info"></i>Stock</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Stock Quantity</label>
+                    {{ form.stock_quantity }}
+                </div>
+                <div>
+                    <label class="form-label fw-medium">Low Stock Threshold</label>
+                    {{ form.low_stock_threshold }}
+                    <div class="form-text">Alert when stock falls below this value.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status & Tags -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-toggles me-2 text-primary"></i>Status & Tags</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="form-check mb-2">
+                    {{ form.is_active }}
+                    <label class="form-check-label fw-medium">Active</label>
+                </div>
+                <div class="form-check mb-4">
+                    {{ form.is_featured }}
+                    <label class="form-check-label fw-medium">Featured</label>
+                </div>
+                <label class="form-label fw-medium">Tags</label>
+                <div class="border rounded p-2" style="max-height:160px;overflow-y:auto;">
+                    {{ form.tags }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="bi bi-check-lg me-1"></i>
+                {% if object %}Update Product{% else %}Create Product{% endif %}
+            </button>
+            <a href="{% url 'products:product_list' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+
+    </div><!-- /col-lg-4 -->
+
+</div><!-- /row -->
+</form>
+{% endblock %}

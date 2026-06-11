@@ -1,0 +1,41 @@
+{% extends 'base_admin.html' %}
+{% block title %}Open POS Session{% endblock %}
+{% block page_title %}Open Cash Register{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center py-5">
+    <div class="card border-0 shadow" style="max-width:480px; width:100%;">
+        <div class="card-header text-white text-center py-4" style="background:#1a6b3c;">
+            <i class="bi bi-cash-register" style="font-size:3rem;"></i>
+            <h4 class="fw-bold mt-2 mb-0">Open POS Session</h4>
+            <p class="mb-0 small opacity-75">Count your opening cash before starting</p>
+        </div>
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Opening Cash (Rs.)</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text">Rs.</span>
+                        <input type="number" name="opening_cash" class="form-control"
+                            placeholder="0.00" step="0.01" min="0" value="0" autofocus>
+                    </div>
+                    <small class="text-muted">Enter the amount of cash in the register at opening.</small>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Notes (optional)</label>
+                    <textarea name="notes" class="form-control" rows="2"
+                        placeholder="Any notes for this session..."></textarea>
+                </div>
+                <button type="submit" class="btn w-100 fw-bold py-3 text-white fs-5"
+                    style="background-color:#1a6b3c;">
+                    <i class="bi bi-unlock me-2"></i>Open Register & Start Selling
+                </button>
+            </form>
+        </div>
+        <div class="card-footer bg-white text-center text-muted small">
+            Cashier: <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+        </div>
+    </div>
+</div>
+{% endblock %}

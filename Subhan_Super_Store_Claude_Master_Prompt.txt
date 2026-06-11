@@ -1,0 +1,282 @@
+SUBHAN SUPER STORE ERP & E-COMMERCE PLATFORM
+MASTER PROMPT + 10 DEVELOPMENT PHASES FOR CLAUDE AI
+
+=====================================================
+MASTER PROMPT
+=====================================================
+
+You are a Senior Software Architect, Senior Django Developer, Senior UI/UX Designer, Senior Database Architect, and Senior DevOps Engineer.
+
+Project Name:
+Subhan Super Store ERP & E-Commerce Platform
+
+Technology Stack:
+- Python 3.13
+- Django 5+
+- Django REST Framework
+- Bootstrap 5
+- HTML5
+- CSS3
+- JavaScript
+- Falak AI API Integration
+- Git & GitHub
+
+Project Goal:
+Build a complete enterprise-grade retail management system and e-commerce platform for Subhan Super Store, Jaranwala.
+
+The platform must support:
+
+1. E-Commerce Website
+2. Customer Portal
+3. Admin Dashboard
+4. Inventory Management
+5. Point of Sale (POS)
+6. Supplier Management
+7. Purchase Management
+8. Sales Management
+9. Delivery Management
+10. Employee Management
+11. Financial Reporting
+12. Loyalty Program
+13. AI Chat Assistant using Falak API
+
+Important Development Rules:
+
+- Follow Django best practices.
+- Follow clean architecture principles.
+- Use reusable apps.
+- Use class-based views wherever appropriate.
+- Use Bootstrap 5 components.
+- Create responsive layouts.
+- Use SQLite3 optimized models.
+- Add comments to complex code.
+- Create professional folder structures.
+- Follow PEP8 standards.
+- Include migrations.
+- Include URLs.
+- Include models.
+- Include forms.
+- Include views.
+- Include templates.
+- Include admin configurations.
+- Include permissions.
+- Include test cases where applicable.
+
+Output Rules:
+
+1. Explain architecture first.
+2. Generate folder structure.
+3. Generate database schema.
+4. Generate code files one by one.
+5. Clearly identify each file path.
+6. Never skip required files.
+7. Do not provide pseudo code.
+8. Provide production-ready code.
+9. Maintain compatibility with previous phases.
+10. At the end provide integration instructions.
+
+Assume all previous phases are already completed and available.
+
+=====================================================
+PHASE 1 — SYSTEM ARCHITECTURE & DATABASE DESIGN
+=====================================================
+
+Using the Master Prompt:
+
+Design the complete system architecture.
+
+Generate:
+- Software Architecture Diagram
+- Django App Structure
+- SQLite3 Database Design
+- ERD Description
+- User Roles
+- Permissions Matrix
+- API Structure
+- URL Structure
+- Security Architecture
+- Deployment Architecture
+
+Do not write application code.
+Focus only on planning and documentation.
+
+=====================================================
+PHASE 2 — PROJECT SETUP & AUTHENTICATION
+=====================================================
+
+Using the Master Prompt:
+
+Generate:
+- Django project setup
+- Requirements.txt
+- Settings.py
+- Custom User Model
+- Authentication system
+- Registration
+- Login
+- Logout
+- Password reset
+- User profile
+
+Generate all required files.
+Create Bootstrap templates.
+Ensure role-based access control.
+
+=====================================================
+PHASE 3 — PRODUCT & CATEGORY MANAGEMENT
+=====================================================
+
+Using the Master Prompt:
+
+Create complete Product Management module.
+
+Include:
+- Categories
+- Subcategories
+- Brands
+- Products
+- Product Images
+- Product Variants
+- Product Reviews
+- Product Tags
+
+Generate:
+- Models
+- Forms
+- Views
+- URLs
+- Templates
+- Admin panel
+
+Create responsive Bootstrap UI.
+
+=====================================================
+PHASE 4 — INVENTORY MANAGEMENT
+=====================================================
+
+Using the Master Prompt:
+
+Create Inventory Management module.
+
+Include:
+- Stock tracking
+- Warehouses
+- Stock movements
+- Low stock alerts
+- Expiry alerts
+- Barcode support
+
+Generate all required code files.
+Create dashboard widgets.
+
+=====================================================
+PHASE 5 — E-COMMERCE STOREFRONT
+=====================================================
+
+Using the Master Prompt:
+
+Create customer-facing e-commerce website.
+
+Include:
+- Home page
+- Product listing
+- Product details
+- Search
+- Filters
+- Wishlist
+- Cart
+- Checkout
+
+Generate complete Bootstrap frontend.
+
+=====================================================
+PHASE 6 — ORDERS & PAYMENTS
+=====================================================
+
+Using the Master Prompt:
+
+Create Order Management module.
+
+Include:
+- Orders
+- Order items
+- Order status tracking
+- Invoice generation
+- JazzCash integration
+- EasyPaisa integration
+- Cash on Delivery
+
+Generate complete code.
+
+=====================================================
+PHASE 7 — POS & RETAIL OPERATIONS
+=====================================================
+
+Using the Master Prompt:
+
+Create Point of Sale system.
+
+Include:
+- POS screen
+- Barcode scanning
+- Quick checkout
+- Receipt printing
+- Discount management
+- Cash register management
+
+Generate all required files.
+
+=====================================================
+PHASE 8 — ADMIN ERP DASHBOARD
+=====================================================
+
+Using the Master Prompt:
+
+Create enterprise admin dashboard.
+
+Include:
+- Sales analytics
+- Revenue charts
+- Inventory widgets
+- Customer analytics
+- Employee statistics
+- Supplier analytics
+
+Use Bootstrap 5 charts and KPI cards.
+
+=====================================================
+PHASE 9 — AI ASSISTANT USING FALAK API
+=====================================================
+
+Using the Master Prompt:
+
+Integrate Falak API.
+
+Create:
+- AI Customer Support Assistant
+- Product Recommendation Engine
+- Sales Prediction Module
+- Inventory Forecasting Module
+
+Generate integration code and UI.
+
+=====================================================
+PHASE 10 — DEPLOYMENT & PRODUCTION
+=====================================================
+
+Using the Master Prompt:
+
+Prepare production deployment.
+
+Generate:
+- Docker configuration
+- Nginx configuration
+- Gunicorn setup
+- SQLite3 production setup
+- Backup strategy
+- Monitoring
+- Security hardening
+- CI/CD pipeline
+- Deployment guide
+
+Generate complete deployment documentation.

@@ -1,0 +1,105 @@
+{% extends 'base_admin.html' %}
+{% load humanize %}
+{% block title %}Session #{{ session.pk }} Detail{% endblock %}
+{% block page_title %}Session #{{ session.pk }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <a href="{% url 'pos:session_list' %}" class="text-muted small text-decoration-none">
+            <i class="bi bi-arrow-left me-1"></i>Back to Sessions
+        </a>
+        <h4 class="fw-bold mt-1 mb-0">Session #{{ session.pk }}</h4>
+        <p class="text-muted small mb-0">{{ session.cashier.get_full_name|default:session.cashier.username }} · {{ session.opened_at|date:"d M Y, h:i A" }}</p>
+    </div>
+    <span class="badge {% if session.status == 'open' %}bg-success{% else %}bg-secondary{% endif %} fs-6 px-3 py-2">
+        {{ session.get_status_display }}
+    </span>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm stat-card text-center py-3">
+            <div class="fs-2 fw-bold" style="color:#1a6b3c;">{{ session.total_sales }}</div>
+            <div class="text-muted small">Total Sales</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm stat-card text-center py-3">
+            <div class="fs-2 fw-bold" style="color:#1a6b3c;">Rs. {{ session.total_revenue|intcomma }}</div>
+            <div class="text-muted small">Revenue</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm stat-card text-center py-3">
+            <div class="fs-2 fw-bold text-warning">Rs. {{ session.opening_cash|intcomma }}</div>
+            <div class="text-muted small">Opening Cash</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm stat-card text-center py-3">
+            <div class="fs-2 fw-bold text-secondary">
+                {% if session.closing_cash is not None %}Rs. {{ session.closing_cash|intcomma }}{% else %}—{% endif %}
+            </div>
+            <div class="text-muted small">Closing Cash</div>
+        </div>
+    </div>
+</div>
+
+<!-- Sales Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white fw-bold py-3 d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-receipt me-2" style="color:#1a6b3c;"></i>Sales</span>
+        <span class="badge bg-secondary">{{ sales.count }}</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Sale #</th>
+                    <th>Time</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Payment</th>
+                    <th>Discount</th>
+                    <th>Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td class="fw-semibold">{{ sale.sale_number }}</td>
+                    <td class="text-muted small">{{ sale.created_at|time:"h:i A" }}</td>
+                    <td class="text-muted small">{{ sale.customer_name|default:"—" }}</td>
+                    <td class="text-muted small">{{ sale.items.count }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ sale.get_payment_method_display }}</span></td>
+                    <td class="text-muted small">
+                        {% if sale.discount_amount %}Rs. {{ sale.discount_amount|intcomma }}{% else %}—{% endif %}
+                    </td>
+                    <td class="fw-bold" style="color:#1a6b3c;">Rs. {{ sale.total_amount|intcomma }}</td>
+                    <td>
+                        <a href="{% url 'pos:receipt' sale.sale_number %}" target="_blank"
+                            class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-printer"></i>
+                        </a>
+                        {% if request.user.is_manager %}
+                        <form method="post" action="{% url 'pos:sale_void' sale.sale_number %}" class="d-inline"
+                            onsubmit="return confirm('Void this sale and restore stock?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger ms-1">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No sales in this session.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

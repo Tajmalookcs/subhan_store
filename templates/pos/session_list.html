@@ -1,0 +1,59 @@
+{% extends 'base_admin.html' %}
+{% load humanize %}
+{% block title %}POS Sessions{% endblock %}
+{% block page_title %}POS Sessions{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-cash-register me-2" style="color:#1a6b3c;"></i>POS Sessions</h4>
+    <a href="{% url 'pos:redirect' %}" class="btn text-white fw-semibold" style="background:#1a6b3c;">
+        <i class="bi bi-plus-circle me-1"></i>Open / Go to POS
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Cashier</th>
+                    <th>Opened</th>
+                    <th>Closed</th>
+                    <th>Duration</th>
+                    <th>Sales</th>
+                    <th>Revenue</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sessions %}
+                <tr>
+                    <td class="fw-semibold">{{ s.pk }}</td>
+                    <td>{{ s.cashier.get_full_name|default:s.cashier.username }}</td>
+                    <td class="text-muted small">{{ s.opened_at|date:"d M Y, h:i A" }}</td>
+                    <td class="text-muted small">{% if s.closed_at %}{{ s.closed_at|date:"d M Y, h:i A" }}{% else %}—{% endif %}</td>
+                    <td class="text-muted small">{{ s.duration }}</td>
+                    <td>{{ s.total_sales }}</td>
+                    <td class="fw-semibold" style="color:#1a6b3c;">Rs. {{ s.total_revenue|intcomma }}</td>
+                    <td>
+                        <span class="badge {% if s.status == 'open' %}bg-success{% else %}bg-secondary{% endif %}">
+                            {{ s.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'pos:session_detail' s.pk %}" class="btn btn-sm btn-outline-secondary">View</a>
+                        {% if s.status == 'open' and s.cashier == request.user %}
+                        <a href="{% url 'pos:screen' %}" class="btn btn-sm btn-success ms-1">POS</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9" class="text-center text-muted py-4">No sessions yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

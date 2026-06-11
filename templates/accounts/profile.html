@@ -1,0 +1,114 @@
+{% extends 'base_admin.html' %}
+{% block title %}My Profile — Subhan Super Store{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+    <!-- Profile Info -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0"><i class="bi bi-person-circle me-2 text-success"></i>Profile Information</h5>
+            </div>
+            <div class="card-body px-4 pb-4">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">First Name</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Last Name</label>
+                            {{ form.last_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Phone</label>
+                            {{ form.phone }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Address</label>
+                            {{ form.address }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Date of Birth</label>
+                            {{ form.date_of_birth }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Profile Picture</label>
+                            {{ form.profile_picture }}
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary fw-semibold px-4">
+                            <i class="bi bi-check-circle me-1"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Info + Change Password -->
+    <div class="col-lg-4">
+
+        <!-- Account Summary -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4 text-center">
+                {% if request.user.profile_picture %}
+                    <img src="{{ request.user.profile_picture.url }}"
+                         class="rounded-circle mb-3" width="80" height="80"
+                         style="object-fit:cover;">
+                {% else %}
+                    <div class="bg-success text-white rounded-circle d-flex align-items-center
+                                justify-content-center mx-auto mb-3"
+                         style="width:80px;height:80px;font-size:2rem;">
+                        {{ request.user.username|first|upper }}
+                    </div>
+                {% endif %}
+                <h6 class="fw-bold mb-1">{{ request.user.get_full_name|default:request.user.username }}</h6>
+                <span class="badge bg-success">{{ request.user.get_role_display }}</span>
+                <p class="text-muted small mt-2 mb-0">{{ request.user.email }}</p>
+                <p class="text-muted small">Member since {{ request.user.date_joined|date:"M Y" }}</p>
+            </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold mb-0"><i class="bi bi-shield-lock me-2 text-warning"></i>Change Password</h6>
+            </div>
+            <div class="card-body px-4 pb-4">
+                <form method="post" action="{% url 'accounts:password_change' %}" novalidate>
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Current Password</label>
+                        {{ password_form.old_password }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">New Password</label>
+                        {{ password_form.new_password1 }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Confirm New Password</label>
+                        {{ password_form.new_password2 }}
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-warning btn-sm fw-semibold">
+                            <i class="bi bi-lock me-1"></i> Update Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

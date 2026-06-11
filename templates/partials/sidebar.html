@@ -1,0 +1,154 @@
+<!-- Admin Sidebar -->
+<nav id="sidebar">
+    <div class="sidebar-brand">
+        <h5>Subhan <span>Super Store</span></h5>
+        <small class="text-white-50">ERP Dashboard</small>
+    </div>
+
+    <ul class="nav flex-column mt-2">
+
+        <li class="nav-section">Main</li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+               href="{% url 'accounts:dashboard' %}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+        </li>
+
+        {% if request.user.is_manager %}
+        <li class="nav-section">Catalog</li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'products' in request.path and 'categories' not in request.path and 'brands' not in request.path %}active{% endif %}"
+               href="{% url 'products:product_list' %}">
+                <i class="bi bi-box-seam"></i> Products
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'categories' in request.path %}active{% endif %}"
+               href="{% url 'products:category_list' %}">
+                <i class="bi bi-folder"></i> Categories
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'brands' in request.path %}active{% endif %}"
+               href="{% url 'products:brand_list' %}">
+                <i class="bi bi-tag"></i> Brands
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'inventory' in request.path %}active{% endif %}"
+               href="{% url 'inventory:dashboard' %}">
+                <i class="bi bi-archive"></i> Inventory
+            </a>
+        </li>
+        {% if 'inventory' in request.path %}
+        <li class="nav-item ps-3">
+            <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'movement_list' %}active{% endif %}"
+               href="{% url 'inventory:movement_list' %}">
+                <i class="bi bi-arrow-left-right"></i> Movements
+            </a>
+        </li>
+        <li class="nav-item ps-3">
+            <a class="nav-link py-1 small {% if request.resolver_match.url_name == 'low_stock' %}active{% endif %}"
+               href="{% url 'inventory:low_stock' %}">
+                <i class="bi bi-exclamation-triangle"></i> Low Stock
+            </a>
+        </li>
+        <li class="nav-item ps-3">
+            <a class="nav-link py-1 small {% if 'expiry' in request.path %}active{% endif %}"
+               href="{% url 'inventory:expiry_list' %}">
+                <i class="bi bi-calendar-x"></i> Expiry
+            </a>
+        </li>
+        {% endif %}
+
+        <li class="nav-section">Sales</li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'orders' in request.path %}active{% endif %}"
+               href="{% url 'orders:admin_order_list' %}">
+                <i class="bi bi-cart3"></i> Orders
+            </a>
+        </li>
+        {% endif %}
+
+        {% if request.user.is_cashier %}
+        <li class="nav-item">
+            <a class="nav-link {% if 'pos' in request.path %}active{% endif %}"
+               href="{% url 'pos:redirect' %}">
+                <i class="bi bi-cash-register"></i> POS
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if 'pos/session' in request.path %}active{% endif %}"
+               href="{% url 'pos:session_list' %}">
+                <i class="bi bi-clock-history"></i> POS Sessions
+            </a>
+        </li>
+        {% endif %}
+
+        {% if request.user.is_manager %}
+        <li class="nav-section">Operations</li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="bi bi-truck"></i> Delivery
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="bi bi-building"></i> Suppliers
+            </a>
+        </li>
+        {% endif %}
+
+        {% if request.user.is_admin %}
+        <li class="nav-section">Management</li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="bi bi-people"></i> Employees
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link
+                {% if request.resolver_match.url_name == 'staff_list' %}active{% endif %}"
+               href="{% url 'accounts:staff_list' %}">
+                <i class="bi bi-person-badge"></i> Staff Users
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="bi bi-graph-up-arrow"></i> Finance
+            </a>
+        </li>
+        {% endif %}
+
+        <li class="nav-section">Other</li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="bi bi-gift"></i> Loyalty
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="bi bi-robot"></i> AI Assistant
+            </a>
+        </li>
+
+        <li class="nav-section">Account</li>
+        <li class="nav-item">
+            <a class="nav-link
+                {% if request.resolver_match.url_name == 'staff_profile' %}active{% endif %}"
+               href="{% url 'accounts:staff_profile' %}">
+                <i class="bi bi-person-circle"></i> My Profile
+            </a>
+        </li>
+        <li class="nav-item">
+            <form method="post" action="{% url 'accounts:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+            </form>
+        </li>
+
+    </ul>
+</nav>

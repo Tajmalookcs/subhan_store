@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Shop — Subhan Super Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-card { transition: transform .2s, box-shadow .2s; }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+    .badge-sale { background-color: #dc3545; }
+    .price-old { text-decoration: line-through; color: #999; font-size: .85em; }
+    .filter-card { border-left: 3px solid #1a6b3c; }
+    .active-filter { background-color: #1a6b3c !important; color: white !important; border-color: #1a6b3c !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Breadcrumb & Header -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'store:home' %}">Home</a></li>
+            <li class="breadcrumb-item active">Shop</li>
+            {% if selected_category %}<li class="breadcrumb-item active">{{ selected_category.name }}</li>{% endif %}
+        </ol>
+    </nav>
+
+    <!-- Search bar -->
+    <form method="get" class="mb-4">
+        {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category.slug }}">{% endif %}
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search products..."
+                value="{{ search_q }}">
+            <button class="btn text-white" type="submit" style="background-color:#1a6b3c;">
+                <i class="bi bi-search"></i> Search
+            </button>
+        </div>
+    </form>
+
+    <div class="row g-4">
+
+        <!-- Sidebar Filters -->
+        <div class="col-lg-3">
+
+            <!-- Active filters -->
+            {% if search_q or selected_category or selected_brand or on_sale or min_price or max_price %}
+            <div class="card mb-3 filter-card">
+                <div class="card-body py-2">
+                    <p class="small fw-semibold mb-2">Active Filters:</p>
+                    {% if search_q %}<a href="?{% if selected_category %}category={{ selected_category.slug }}&{% endif %}" class="badge bg-secondary text-decoration-none me-1 mb-1">Search: {{ search_q }} ×</a>{% endif %}
+                    {% if on_sale %}<a href="?" class="badge bg-danger text-decoration-none me-1 mb-1">On Sale ×</a>{% endif %}
+                    <a href="{% url 'store:product_list' %}" class="badge bg-dark text-decoration-none ms-1">Clear All ×</a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Categories -->
+            <div class="card mb-3 filter-card">
+                <div class="card-header bg-white fw-semibold py-2">
+                    <i class="bi bi-grid me-1"></i> Categories
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'store:product_list' %}{% if search_q %}?q={{ search_q }}{% endif %}"
+                            class="list-group-item list-group-item-action small py-2 {% if not selected_category %}active-filter{% endif %}">
+                            All Categories
+                        </a>
+                        {% for cat in categories %}
+                        <a href="?category={{ cat.slug }}{% if search_q %}&q={{ search_q }}{% endif %}"
+                            class="list-group-item list-group-item-action small py-2 {% if selected_category.slug == cat.slug %}active-filter{% endif %}">
+                            {{ cat.name }}
+                            {% if cat.children.exists %}
+                            <i class="bi bi-chevron-down float-end small"></i>
+                            {% endif %}
+                        </a>
+                        {% if selected_category and selected_category.slug == cat.slug %}
+                            {% for sub in cat.get_children %}
+                            <a href="?category={{ sub.slug }}"
+                                class="list-group-item list-group-item-action small py-1 ps-4 text-muted">
+                                └ {{ sub.name }}
+                            </a>
+                            {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Range -->
+            <div class="card mb-3 filter-card">
+                <div class="card-header bg-white fw-semibold py-2">
+                    <i class="bi bi-currency-rupee me-1"></i> Price Range
+                </div>
+                <div class="card-body">
+                    <form method="get">
+                        {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category.slug }}">{% endif %}
+                        {% if search_q %}<input type="hidden" name="q" value="{{ search_q }}">{% endif %}
+                        <div class="mb-2">
+                            <input type="number" name="min_price" class="form-control form-control-sm"
+                                placeholder="Min Price" value="{{ min_price }}">
+                        </div>
+                        <div class="mb-2">
+                            <input type="number" name="max_price" class="form-control form-control-sm"
+                                placeholder="Max Price" value="{{ max_price }}">
+                        </div>
+                        <button type="submit" class="btn btn-sm w-100 text-white" style="background-color:#1a6b3c;">
+                            Apply
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Brands -->
+            {% if brands %}
+            <div class="card mb-3 filter-card">
+                <div class="card-header bg-white fw-semibold py-2">
+                    <i class="bi bi-award me-1"></i> Brands
+                </div>
+                <div class="card-body p-0" style="max-height:220px; overflow-y:auto;">
+                    <div class="list-group list-group-flush">
+                        {% for brand in brands %}
+                        <a href="?{% if selected_category %}category={{ selected_category.slug }}&{% endif %}brand={{ brand.slug }}"
+                            class="list-group-item list-group-item-action small py-2 {% if selected_brand == brand.slug %}active-filter{% endif %}">
+                            {{ brand.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Special Filters -->
+            <div class="card filter-card">
+                <div class="card-body">
+                    <a href="?{% if selected_category %}category={{ selected_category.slug }}&{% endif %}on_sale=1"
+                        class="btn btn-sm btn-outline-danger w-100 {% if on_sale %}active{% endif %}">
+                        <i class="bi bi-percent me-1"></i> On Sale Only
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Product Grid -->
+        <div class="col-lg-9">
+
+            <!-- Sort & Count Bar -->
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <p class="mb-0 text-muted small">
+                    Showing <strong>{{ page_obj.start_index }}–{{ page_obj.end_index }}</strong>
+                    of <strong>{{ total_count }}</strong> products
+                    {% if selected_category %}in <strong>{{ selected_category.name }}</strong>{% endif %}
+                    {% if search_q %}for "<strong>{{ search_q }}</strong>"{% endif %}
+                </p>
+                <form method="get" class="d-flex gap-2 align-items-center">
+                    {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category.slug }}">{% endif %}
+                    {% if search_q %}<input type="hidden" name="q" value="{{ search_q }}">{% endif %}
+                    {% if on_sale %}<input type="hidden" name="on_sale" value="1">{% endif %}
+                    <label class="small text-muted mb-0">Sort:</label>
+                    <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="-created_at" {% if sort == '-created_at' %}selected{% endif %}>Newest</option>
+                        <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="name_asc" {% if sort == 'name_asc' %}selected{% endif %}>Name A–Z</option>
+                    </select>
+                </form>
+            </div>
+
+            {% if products %}
+            <div class="row g-3">
+                {% for product in products %}
+                {% include 'store/partials/product_card.html' %}
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_category %}&category={{ selected_category.slug }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">
+                            &laquo; Prev
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if selected_category %}&category={{ selected_category.slug }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_category %}&category={{ selected_category.slug }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">
+                            Next &raquo;
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-search" style="font-size:4rem; color:#ccc;"></i>
+                <h4 class="mt-3 text-muted">No products found</h4>
+                <p class="text-muted">Try adjusting your filters or search term.</p>
+                <a href="{% url 'store:product_list' %}" class="btn text-white" style="background-color:#1a6b3c;">
+                    Clear Filters
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

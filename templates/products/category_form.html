@@ -1,0 +1,85 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}{% if object %}Edit Category{% else %}Add Category{% endif %} — Subhan Super Store{% endblock %}
+{% block page_title %}{% if object %}Edit Category: {{ object.name }}{% else %}Add Category{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        <div class="mb-3">
+            <a href="{% url 'products:category_list' %}" class="text-muted text-decoration-none small">
+                <i class="bi bi-arrow-left me-1"></i> Back to Categories
+            </a>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="bi bi-folder{% if object %}-symlink{% else %}-plus{% endif %} me-2 text-success"></i>
+                    {% if object %}Edit Category{% else %}New Category{% endif %}
+                </h6>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Category Name <span class="text-danger">*</span></label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Parent Category</label>
+                        {{ form.parent }}
+                        <div class="form-text">Leave blank to create a top-level category.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Description</label>
+                        {{ form.description }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Category Image</label>
+                        {% if object.image %}
+                        <div class="mb-2">
+                            <img src="{{ object.image.url }}" height="80" class="rounded border">
+                        </div>
+                        {% endif %}
+                        {{ form.image }}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <label class="form-label fw-medium">Display Order</label>
+                            {{ form.order }}
+                            <div class="form-text">Lower numbers appear first.</div>
+                        </div>
+                        <div class="col-sm-6 d-flex align-items-end">
+                            <div class="form-check mb-2">
+                                {{ form.is_active }}
+                                <label class="form-check-label fw-medium" for="{{ form.is_active.id_for_label }}">
+                                    Active
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="bi bi-check-lg me-1"></i>
+                            {% if object %}Update Category{% else %}Create Category{% endif %}
+                        </button>
+                        <a href="{% url 'products:category_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+<!-- Public Storefront Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1a6b3c;">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{% url 'store:home' %}">
+            Subhan <span style="color: #f4c430;">Super Store</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'store:product_list' %}">
+                        <i class="bi bi-shop me-1"></i>Shop
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'store:product_list' %}?on_sale=1">
+                        <i class="bi bi-percent me-1"></i>Deals
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Search (compact) -->
+            <form class="d-flex me-3" action="{% url 'store:product_list' %}" method="get">
+                <div class="input-group input-group-sm" style="width:220px;">
+                    <input type="text" name="q" class="form-control" placeholder="Search...">
+                    <button class="btn btn-warning btn-sm" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+
+            <div class="d-flex align-items-center gap-2">
+                <!-- Cart -->
+                <a href="{% url 'store:cart' %}" class="btn btn-outline-light btn-sm position-relative">
+                    <i class="bi bi-cart3"></i>
+                    {% if cart_count %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark"
+                        style="font-size:.65rem;">
+                        {{ cart_count }}
+                    </span>
+                    {% endif %}
+                </a>
+
+                <!-- Wishlist -->
+                {% if user.is_authenticated %}
+                <a href="{% url 'store:wishlist' %}" class="btn btn-outline-light btn-sm position-relative">
+                    <i class="bi bi-heart"></i>
+                    {% if wishlist_count %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                        style="font-size:.65rem;">
+                        {{ wishlist_count }}
+                    </span>
+                    {% endif %}
+                </a>
+                {% endif %}
+
+                {% if user.is_authenticated %}
+                    {% if user.is_staff_member %}
+                        <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        </a>
+                        <a href="{% url 'orders:admin_order_list' %}" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-bag me-1"></i>Orders
+                        </a>
+                    {% else %}
+                        <a href="{% url 'orders:order_list' %}" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-bag me-1"></i>My Orders
+                        </a>
+                        <a href="{% url 'accounts:customer_dashboard' %}" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-person me-1"></i>Account
+                        </a>
+                    {% endif %}
+                    <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning btn-sm">Logout</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-sm">Login</a>
+                    <a href="{% url 'accounts:register' %}" class="btn btn-warning btn-sm">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>

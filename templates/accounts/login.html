@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Login — Subhan Super Store{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <h4 class="fw-bold" style="color:#1a6b3c;">Welcome Back</h4>
+                        <p class="text-muted small">Sign in to your account</p>
+                    </div>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Username</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Password</label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="form-check">
+                                {{ form.remember_me }}
+                                <label class="form-check-label small">Remember me</label>
+                            </div>
+                            <a href="{% url 'accounts:password_reset' %}" class="small text-decoration-none"
+                               style="color:#1a6b3c;">Forgot password?</a>
+                        </div>
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger small py-2">
+                            {{ form.non_field_errors.0 }}
+                        </div>
+                        {% endif %}
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary fw-semibold">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Login
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr>
+                    <p class="text-center small mb-0">
+                        Don't have an account?
+                        <a href="{% url 'accounts:register' %}" class="fw-semibold text-decoration-none"
+                           style="color:#1a6b3c;">Register</a>
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

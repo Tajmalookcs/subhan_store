@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Subhan Super Store — Home{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #1a6b3c 0%, #0d4a28 60%, #1a1a2e 100%);
+        min-height: 480px;
+    }
+    .product-card { transition: transform .2s, box-shadow .2s; }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+    .badge-sale { background-color: #dc3545; }
+    .category-card { transition: transform .2s; cursor: pointer; }
+    .category-card:hover { transform: translateY(-3px); }
+    .section-title { border-left: 4px solid #1a6b3c; padding-left: 12px; }
+    .price-old { text-decoration: line-through; color: #999; font-size: .85em; }
+    .star-filled { color: #f4c430; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Banner -->
+<section class="hero-section d-flex align-items-center text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <p class="text-warning fw-semibold mb-2 fs-5">Welcome to</p>
+                <h1 class="display-4 fw-bold mb-3">Subhan <span style="color:#f4c430;">Super Store</span></h1>
+                <p class="lead mb-4 text-white-75">Your one-stop shop for groceries, electronics, clothing and more. Quality products at unbeatable prices in Jaranwala.</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="{% url 'store:product_list' %}" class="btn btn-warning btn-lg fw-semibold px-4">
+                        <i class="bi bi-shop me-2"></i>Shop Now
+                    </a>
+                    <a href="{% url 'store:product_list' %}?on_sale=1" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-tag me-2"></i>View Deals
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center d-none d-lg-block">
+                <i class="bi bi-bag-heart" style="font-size:10rem; opacity:.2;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Search Bar -->
+<section class="bg-white shadow-sm py-3">
+    <div class="container">
+        <form action="{% url 'store:product_list' %}" method="get">
+            <div class="input-group input-group-lg">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" name="q" class="form-control border-start-0 ps-0"
+                    placeholder="Search for products, brands, categories...">
+                <button class="btn btn-success px-4" type="submit" style="background-color:#1a6b3c; border-color:#1a6b3c;">
+                    Search
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Stats Bar -->
+<section class="bg-success text-white py-3" style="background-color:#1a6b3c !important;">
+    <div class="container">
+        <div class="row text-center g-3">
+            <div class="col-6 col-md-3">
+                <i class="bi bi-truck fs-4 d-block mb-1"></i>
+                <small class="fw-semibold">Free Delivery</small>
+                <div class="opacity-75" style="font-size:.75rem;">On orders over Rs. 2000</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <i class="bi bi-shield-check fs-4 d-block mb-1"></i>
+                <small class="fw-semibold">Secure Payment</small>
+                <div class="opacity-75" style="font-size:.75rem;">100% secure transactions</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <i class="bi bi-arrow-return-left fs-4 d-block mb-1"></i>
+                <small class="fw-semibold">Easy Returns</small>
+                <div class="opacity-75" style="font-size:.75rem;">7-day return policy</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <i class="bi bi-headset fs-4 d-block mb-1"></i>
+                <small class="fw-semibold">24/7 Support</small>
+                <div class="opacity-75" style="font-size:.75rem;">Always here to help</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories -->
+{% if top_categories %}
+<section class="py-5">
+    <div class="container">
+        <h2 class="h4 fw-bold mb-4 section-title">Shop by Category</h2>
+        <div class="row g-3">
+            {% for cat in top_categories %}
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                <a href="{% url 'store:product_list' %}?category={{ cat.slug }}" class="text-decoration-none">
+                    <div class="card text-center py-4 category-card h-100 border-0 shadow-sm">
+                        {% if cat.image %}
+                            <img src="{{ cat.image.url }}" class="rounded-circle mx-auto mb-3"
+                                width="64" height="64" style="object-fit:cover;" alt="{{ cat.name }}">
+                        {% else %}
+                            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle"
+                                style="width:64px;height:64px;background:#e8f5e9;">
+                                <i class="bi bi-grid" style="font-size:1.5rem; color:#1a6b3c;"></i>
+                            </div>
+                        {% endif %}
+                        <p class="mb-0 fw-semibold text-dark small">{{ cat.name }}</p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                <a href="{% url 'store:product_list' %}" class="text-decoration-none">
+                    <div class="card text-center py-4 category-card h-100 border-0 shadow-sm" style="background:#f8f9fa;">
+                        <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle"
+                            style="width:64px;height:64px;background:#1a6b3c;">
+                            <i class="bi bi-arrow-right text-white" style="font-size:1.5rem;"></i>
+                        </div>
+                        <p class="mb-0 fw-semibold text-dark small">All Categories</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Featured Products -->
+{% if featured_products %}
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 fw-bold mb-0 section-title">Featured Products</h2>
+            <a href="{% url 'store:product_list' %}" class="btn btn-outline-success btn-sm" style="color:#1a6b3c; border-color:#1a6b3c;">
+                View All <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="row g-3">
+            {% for product in featured_products %}
+            {% include 'store/partials/product_card.html' %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Sale Banner -->
+<section class="py-5" style="background: linear-gradient(135deg, #f4c430, #e0a800);">
+    <div class="container text-center">
+        <h2 class="display-6 fw-bold text-dark mb-2">Special Deals & Offers</h2>
+        <p class="lead text-dark mb-4">Limited time discounts on hundreds of products</p>
+        <a href="{% url 'store:product_list' %}?on_sale=1" class="btn btn-dark btn-lg px-5 fw-semibold">
+            <i class="bi bi-percent me-2"></i>Shop Deals Now
+        </a>
+    </div>
+</section>
+
+<!-- New Arrivals -->
+{% if new_arrivals %}
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 fw-bold mb-0 section-title">New Arrivals</h2>
+            <a href="{% url 'store:product_list' %}?sort=-created_at" class="btn btn-outline-success btn-sm" style="color:#1a6b3c; border-color:#1a6b3c;">
+                View All <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="row g-3">
+            {% for product in new_arrivals %}
+            {% include 'store/partials/product_card.html' %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Sale Products -->
+{% if sale_products %}
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 fw-bold mb-0 section-title">
+                <span class="text-danger">On Sale</span> — Best Deals
+            </h2>
+            <a href="{% url 'store:product_list' %}?on_sale=1" class="btn btn-outline-danger btn-sm">
+                View All Deals <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="row g-3">
+            {% for product in sale_products %}
+            {% include 'store/partials/product_card.html' %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}

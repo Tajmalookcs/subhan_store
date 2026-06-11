@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Wishlist — Subhan Super Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-card { transition: transform .2s, box-shadow .2s; }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+    .price-old { text-decoration: line-through; color: #999; font-size: .85em; }
+    .badge-sale { background-color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'store:home' %}">Home</a></li>
+            <li class="breadcrumb-item active">Wishlist</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-heart-fill me-2 text-danger"></i>My Wishlist
+            {% if products %}<span class="badge bg-secondary ms-2">{{ products.count }}</span>{% endif %}
+        </h2>
+        <a href="{% url 'store:product_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-shop me-1"></i>Continue Shopping
+        </a>
+    </div>
+
+    {% if products %}
+    <div class="row g-3">
+        {% for product in products %}
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm product-card">
+                <div class="position-relative">
+                    {% if product.primary_image %}
+                        <img src="{{ product.primary_image.image.url }}" class="card-img-top"
+                            style="height:200px; object-fit:cover;" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                            style="height:200px;">
+                            <i class="bi bi-image text-muted" style="font-size:3rem;"></i>
+                        </div>
+                    {% endif %}
+                    {% if product.discount_percentage %}
+                    <span class="badge badge-sale position-absolute top-0 start-0 m-2">
+                        -{{ product.discount_percentage }}%
+                    </span>
+                    {% endif %}
+                    <!-- Remove from wishlist -->
+                    <form method="post" action="{% url 'store:wishlist_toggle' product.pk %}"
+                        class="position-absolute top-0 end-0 m-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{% url 'store:wishlist' %}">
+                        <button type="submit" class="btn btn-sm btn-danger rounded-circle"
+                            style="width:32px;height:32px;padding:0;" title="Remove from Wishlist">
+                            <i class="bi bi-heart-fill"></i>
+                        </button>
+                    </form>
+                </div>
+                <div class="card-body d-flex flex-column p-3">
+                    <p class="text-muted small mb-1">{{ product.category.name }}</p>
+                    <h6 class="card-title mb-1 fw-semibold">
+                        <a href="{% url 'store:product_detail' product.slug %}"
+                            class="text-decoration-none text-dark">
+                            {{ product.name|truncatechars:50 }}
+                        </a>
+                    </h6>
+                    <div class="mt-auto pt-2">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="fw-bold" style="color:#1a6b3c;">
+                                Rs. {{ product.effective_price|intcomma }}
+                            </span>
+                            {% if product.sale_price %}
+                            <span class="price-old">Rs. {{ product.selling_price|intcomma }}</span>
+                            {% endif %}
+                        </div>
+                        {% if product.stock_quantity > 0 %}
+                        <form method="post" action="{% url 'store:cart_add' product.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <input type="hidden" name="next" value="{% url 'store:cart' %}">
+                            <button type="submit" class="btn btn-sm w-100 fw-semibold text-white"
+                                style="background-color:#1a6b3c;">
+                                <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                            </button>
+                        </form>
+                        {% else %}
+                        <span class="badge bg-danger w-100 py-2">Out of Stock</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-heart" style="font-size:5rem; color:#ccc;"></i>
+        <h3 class="mt-3 text-muted">Your wishlist is empty</h3>
+        <p class="text-muted mb-4">Save products you love and buy them later.</p>
+        <a href="{% url 'store:product_list' %}" class="btn btn-lg text-white px-5"
+            style="background-color:#1a6b3c;">
+            <i class="bi bi-shop me-2"></i>Browse Products
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

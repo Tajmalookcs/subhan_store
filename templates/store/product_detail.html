@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ product.name }} — Subhan Super Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    .thumbnail-img { cursor: pointer; border: 2px solid transparent; border-radius: 6px; }
+    .thumbnail-img.active, .thumbnail-img:hover { border-color: #1a6b3c; }
+    .main-product-img { max-height: 420px; object-fit: contain; width: 100%; }
+    .rating-star { color: #f4c430; }
+    .rating-star.empty { color: #ddd; }
+    .product-card { transition: transform .2s, box-shadow .2s; }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+    .price-old { text-decoration: line-through; color: #999; }
+    .badge-sale { background-color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'store:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'store:product_list' %}">Shop</a></li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'store:product_list' %}?category={{ product.category.slug }}">{{ product.category.name }}</a>
+            </li>
+            <li class="breadcrumb-item active">{{ product.name|truncatechars:30 }}</li>
+        </ol>
+    </nav>
+
+    <!-- Product Main Section -->
+    <div class="row g-4 mb-5">
+
+        <!-- Images -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm p-3">
+                {% if product.primary_image %}
+                    <img id="mainImage" src="{{ product.primary_image.image.url }}"
+                        class="main-product-img mb-3 rounded" alt="{{ product.name }}">
+                {% else %}
+                    <div class="main-product-img mb-3 rounded bg-light d-flex align-items-center justify-content-center">
+                        <i class="bi bi-image text-muted" style="font-size:5rem;"></i>
+                    </div>
+                {% endif %}
+                {% if product.images.count > 1 %}
+                <div class="d-flex gap-2 flex-wrap">
+                    {% for img in product.images.all %}
+                    <img src="{{ img.image.url }}" class="thumbnail-img {% if forloop.first %}active{% endif %}"
+                        width="70" height="70" style="object-fit:cover;"
+                        onclick="document.getElementById('mainImage').src='{{ img.image.url }}'; document.querySelectorAll('.thumbnail-img').forEach(t=>t.classList.remove('active')); this.classList.add('active');"
+                        alt="{{ product.name }}">
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Info -->
+        <div class="col-lg-7">
+            {% if product.brand %}
+            <p class="text-muted small mb-1">
+                <a href="{% url 'store:product_list' %}?brand={{ product.brand.slug }}" class="text-decoration-none">
+                    {{ product.brand.name }}
+                </a>
+            </p>
+            {% endif %}
+            <h1 class="h3 fw-bold mb-2">{{ product.name }}</h1>
+
+            <!-- Rating summary -->
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div>
+                    {% for i in avg_rating_range %}
+                        {% if i <= avg_rating %}
+                            <i class="bi bi-star-fill rating-star"></i>
+                        {% else %}
+                            <i class="bi bi-star rating-star empty"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <span class="text-muted small">({{ reviews.count }} reviews)</span>
+                <span class="text-muted small">·</span>
+                <span class="text-muted small">SKU: {{ product.sku }}</span>
+            </div>
+
+            <!-- Price -->
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <span class="display-6 fw-bold" style="color:#1a6b3c;">
+                    Rs. {{ product.effective_price|intcomma }}
+                </span>
+                {% if product.sale_price %}
+                    <span class="price-old fs-5">Rs. {{ product.selling_price|intcomma }}</span>
+                    <span class="badge bg-danger fs-6">-{{ product.discount_percentage }}% OFF</span>
+                {% endif %}
+            </div>
+
+            {% if product.short_description %}
+            <p class="text-muted mb-3">{{ product.short_description }}</p>
+            {% endif %}
+
+            <!-- Stock -->
+            {% if product.stock_quantity > 0 %}
+                <p class="mb-3">
+                    <span class="badge bg-success">
+                        <i class="bi bi-check-circle me-1"></i>In Stock
+                    </span>
+                    <span class="text-muted small ms-2">{{ product.stock_quantity }} {{ product.get_unit_display }} available</span>
+                </p>
+            {% else %}
+                <p class="mb-3"><span class="badge bg-danger">Out of Stock</span></p>
+            {% endif %}
+
+            <!-- Variants -->
+            {% if product.variants.exists %}
+            <div class="mb-3">
+                <label class="form-label fw-semibold small">Variant</label>
+                <select id="variantSelect" class="form-select form-select-sm" style="max-width:240px;">
+                    <option value="">— Select —</option>
+                    {% for v in product.variants.all %}
+                    {% if v.is_active %}
+                    <option value="{{ v.pk }}" data-adj="{{ v.price_adjustment }}">
+                        {{ v.name }}: {{ v.value }}
+                        {% if v.price_adjustment > 0 %}(+Rs.{{ v.price_adjustment }}){% endif %}
+                        {% if v.price_adjustment < 0 %}(-Rs.{{ v.price_adjustment|floatformat:0 }}){% endif %}
+                    </option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <!-- Add to Cart -->
+            {% if product.stock_quantity > 0 %}
+            <form method="post" action="{% url 'store:cart_add' product.pk %}" class="mb-3">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                {% if product.variants.exists %}
+                <input type="hidden" name="variant_id" id="variantInput" value="">
+                {% endif %}
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <div class="input-group" style="max-width:140px;">
+                        <button type="button" class="btn btn-outline-secondary"
+                            onclick="let q=document.getElementById('qty'); if(q.value>1) q.value=parseInt(q.value)-1;">
+                            <i class="bi bi-dash"></i>
+                        </button>
+                        <input type="number" name="quantity" id="qty" class="form-control text-center"
+                            value="1" min="1" max="{{ product.stock_quantity }}">
+                        <button type="button" class="btn btn-outline-secondary"
+                            onclick="let q=document.getElementById('qty'); q.value=parseInt(q.value)+1;">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                    <button type="submit" class="btn btn-lg fw-semibold px-4 text-white"
+                        style="background-color:#1a6b3c;">
+                        <i class="bi bi-cart-plus me-2"></i>Add to Cart
+                    </button>
+                </div>
+            </form>
+            {% endif %}
+
+            <!-- Wishlist & Share -->
+            <div class="d-flex gap-2 flex-wrap">
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'store:wishlist_toggle' product.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-heart{% if in_wishlist %}-fill{% endif %} me-1"></i>
+                        {% if in_wishlist %}Saved{% else %}Save to Wishlist{% endif %}
+                    </button>
+                </form>
+                {% else %}
+                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-heart me-1"></i>Save to Wishlist
+                </a>
+                {% endif %}
+                <a href="{% url 'store:product_list' %}?category={{ product.category.slug }}"
+                    class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-grid me-1"></i>More in {{ product.category.name }}
+                </a>
+            </div>
+
+            <!-- Tags -->
+            {% if product.tags.exists %}
+            <div class="mt-3">
+                <span class="text-muted small me-2">Tags:</span>
+                {% for tag in product.tags.all %}
+                <a href="{% url 'store:product_list' %}?q={{ tag.name }}"
+                    class="badge bg-light text-dark text-decoration-none border me-1">
+                    {{ tag.name }}
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tabs: Description / Reviews -->
+    <div class="row">
+        <div class="col-12">
+            <ul class="nav nav-tabs mb-3" id="productTabs">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#desc">
+                        Description
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviews">
+                        Reviews ({{ reviews.count }})
+                    </button>
+                </li>
+            </ul>
+            <div class="tab-content">
+
+                <!-- Description -->
+                <div class="tab-pane fade show active" id="desc">
+                    <div class="card border-0 shadow-sm p-4">
+                        {% if product.description %}
+                            {{ product.description|linebreaks }}
+                        {% else %}
+                            <p class="text-muted">No description available.</p>
+                        {% endif %}
+                        {% if product.is_taxable %}
+                        <p class="mt-2 text-muted small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Tax: {{ product.tax_rate }}% applicable
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Reviews -->
+                <div class="tab-pane fade" id="reviews">
+                    <div class="card border-0 shadow-sm p-4">
+                        {% if reviews %}
+                        <div class="mb-4">
+                            <h5 class="fw-bold">Average Rating:
+                                <span style="color:#f4c430;">{{ avg_rating }}/5</span>
+                            </h5>
+                            {% for review in reviews %}
+                            <div class="border-bottom py-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong>{{ review.user.get_full_name|default:review.user.username }}</strong>
+                                    <small class="text-muted">{{ review.created_at|date:"d M Y" }}</small>
+                                </div>
+                                <div class="mb-1">
+                                    {% for i in avg_rating_range %}
+                                        {% if i <= review.rating %}
+                                            <i class="bi bi-star-fill" style="color:#f4c430;"></i>
+                                        {% else %}
+                                            <i class="bi bi-star" style="color:#ddd;"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                {% if review.title %}<p class="fw-semibold mb-1">{{ review.title }}</p>{% endif %}
+                                <p class="mb-0 text-muted">{{ review.comment }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">No reviews yet. Be the first to review this product!</p>
+                        {% endif %}
+
+                        <!-- Submit Review -->
+                        {% if user.is_authenticated and not user_review %}
+                        <h5 class="fw-bold mt-3">Write a Review</h5>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="submit_review" value="1">
+                            <div class="mb-3">
+                                <label class="form-label">Rating</label>
+                                <select name="rating" class="form-select" required>
+                                    <option value="">Select rating</option>
+                                    <option value="5">★★★★★ Excellent</option>
+                                    <option value="4">★★★★☆ Good</option>
+                                    <option value="3">★★★☆☆ Average</option>
+                                    <option value="2">★★☆☆☆ Poor</option>
+                                    <option value="1">★☆☆☆☆ Terrible</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Title (optional)</label>
+                                <input type="text" name="title" class="form-control" placeholder="Summary of your review">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Your Review</label>
+                                <textarea name="comment" class="form-control" rows="4" required
+                                    placeholder="Share your experience with this product..."></textarea>
+                            </div>
+                            <button type="submit" class="btn text-white" style="background-color:#1a6b3c;">
+                                Submit Review
+                            </button>
+                        </form>
+                        {% elif not user.is_authenticated %}
+                        <div class="alert alert-info mt-3">
+                            <a href="{% url 'accounts:login' %}?next={{ request.path }}">Login</a> to write a review.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="mt-5">
+        <h4 class="fw-bold mb-4" style="border-left:4px solid #1a6b3c; padding-left:12px;">
+            Related Products
+        </h4>
+        <div class="row g-3">
+            {% for product in related_products %}
+            {% include 'store/partials/product_card.html' %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Sync variant select to hidden input
+    const vs = document.getElementById('variantSelect');
+    const vi = document.getElementById('variantInput');
+    if (vs && vi) {
+        vs.addEventListener('change', () => { vi.value = vs.value; });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Checkout — Subhan Super Store{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'store:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'store:cart' %}">Cart</a></li>
+            <li class="breadcrumb-item active">Checkout</li>
+        </ol>
+    </nav>
+
+    <h2 class="fw-bold mb-4"><i class="bi bi-bag-check me-2" style="color:#1a6b3c;"></i>Checkout</h2>
+
+    <!-- Progress -->
+    <div class="d-flex align-items-center mb-4 gap-2">
+        <span class="badge rounded-pill text-white px-3 py-2" style="background:#1a6b3c;">1 Shipping</span>
+        <div class="flex-grow-1 border-top mx-1"></div>
+        <span class="badge rounded-pill bg-secondary px-3 py-2">2 Payment</span>
+        <div class="flex-grow-1 border-top mx-1"></div>
+        <span class="badge rounded-pill bg-secondary px-3 py-2">3 Confirm</span>
+    </div>
+
+    <form method="post" id="checkoutForm">
+        {% csrf_token %}
+        <div class="row g-4">
+
+            <!-- Left: Shipping + Payment -->
+            <div class="col-lg-7">
+
+                <!-- Shipping -->
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-white fw-bold py-3">
+                        <i class="bi bi-geo-alt me-2" style="color:#1a6b3c;"></i>Delivery Address
+                    </div>
+                    <div class="card-body">
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                        {% endif %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Full Name *</label>
+                                {{ form.shipping_name }}
+                                {% if form.shipping_name.errors %}<div class="text-danger small">{{ form.shipping_name.errors }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Phone *</label>
+                                {{ form.shipping_phone }}
+                                {% if form.shipping_phone.errors %}<div class="text-danger small">{{ form.shipping_phone.errors }}</div>{% endif %}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Email *</label>
+                                {{ form.shipping_email }}
+                                {% if form.shipping_email.errors %}<div class="text-danger small">{{ form.shipping_email.errors }}</div>{% endif %}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Street Address *</label>
+                                {{ form.shipping_address }}
+                                {% if form.shipping_address.errors %}<div class="text-danger small">{{ form.shipping_address.errors }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">City *</label>
+                                {{ form.shipping_city }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Postal Code</label>
+                                {{ form.shipping_postal_code }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Order Notes</label>
+                                {{ form.notes }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white fw-bold py-3">
+                        <i class="bi bi-credit-card me-2" style="color:#1a6b3c;"></i>Payment Method
+                    </div>
+                    <div class="card-body d-flex flex-column gap-3">
+
+                        <!-- COD -->
+                        <label class="d-flex align-items-center gap-3 border rounded p-3 cursor-pointer"
+                            style="cursor:pointer;">
+                            <input class="form-check-input mt-0" type="radio" name="payment_method"
+                                value="cod" checked>
+                            <i class="bi bi-cash-coin fs-4 text-success"></i>
+                            <div>
+                                <div class="fw-semibold">Cash on Delivery</div>
+                                <small class="text-muted">Pay when your order arrives at your door</small>
+                            </div>
+                        </label>
+
+                        <!-- JazzCash -->
+                        <label class="d-flex align-items-center gap-3 border rounded p-3"
+                            style="cursor:pointer;">
+                            <input class="form-check-input mt-0" type="radio" name="payment_method"
+                                value="jazzcash">
+                            <i class="bi bi-phone fs-4 text-danger"></i>
+                            <div>
+                                <div class="fw-semibold">JazzCash</div>
+                                <small class="text-muted">Pay via JazzCash mobile wallet</small>
+                            </div>
+                        </label>
+
+                        <!-- EasyPaisa -->
+                        <label class="d-flex align-items-center gap-3 border rounded p-3"
+                            style="cursor:pointer;">
+                            <input class="form-check-input mt-0" type="radio" name="payment_method"
+                                value="easypaisa">
+                            <i class="bi bi-phone fs-4" style="color:#3ba83b;"></i>
+                            <div>
+                                <div class="fw-semibold">EasyPaisa</div>
+                                <small class="text-muted">Pay via EasyPaisa mobile wallet</small>
+                            </div>
+                        </label>
+
+                        <!-- JazzCash/EasyPaisa instructions (shown conditionally) -->
+                        <div id="mobilePayInfo" class="alert alert-info py-2 small d-none">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Send payment to <strong>0300-0000000</strong> (Account: Subhan Super Store)
+                            and enter the transaction ID in the order notes above.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right: Order Summary -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm sticky-top" style="top:20px;">
+                    <div class="card-header bg-white fw-bold py-3">
+                        <i class="bi bi-receipt me-2" style="color:#1a6b3c;"></i>Order Summary
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="p-3" style="max-height:270px; overflow-y:auto;">
+                            {% for item in items %}
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                {% if item.product.primary_image %}
+                                <img src="{{ item.product.primary_image.image.url }}"
+                                    width="52" height="52" style="object-fit:cover; border-radius:6px;"
+                                    alt="{{ item.product.name }}">
+                                {% else %}
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                    style="width:52px;height:52px;">
+                                    <i class="bi bi-image text-muted"></i>
+                                </div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <p class="mb-0 small fw-semibold">{{ item.product.name|truncatechars:35 }}</p>
+                                    {% if item.variant %}<p class="mb-0 small text-muted">{{ item.variant.name }}: {{ item.variant.value }}</p>{% endif %}
+                                    <p class="mb-0 small text-muted">Qty: {{ item.quantity }}</p>
+                                </div>
+                                <span class="small fw-semibold">Rs. {{ item.line_total|intcomma }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="border-top p-3">
+                            <div class="d-flex justify-content-between mb-2 small">
+                                <span class="text-muted">Subtotal</span>
+                                <span>Rs. {{ subtotal|intcomma }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 small">
+                                <span class="text-muted">Delivery</span>
+                                <span class="{% if delivery == 0 %}text-success{% endif %}">
+                                    {% if delivery == 0 %}Free{% else %}Rs. {{ delivery|intcomma }}{% endif %}
+                                </span>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between fw-bold fs-5">
+                                <span>Total</span>
+                                <span style="color:#1a6b3c;">Rs. {{ total|intcomma }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white pb-3 px-3 border-top-0">
+                        <button type="submit" class="btn w-100 fw-bold py-2 text-white"
+                            style="background-color:#1a6b3c;">
+                            <i class="bi bi-bag-check me-2"></i>Place Order
+                        </button>
+                        <a href="{% url 'store:cart' %}" class="btn btn-outline-secondary w-100 mt-2 btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Cart
+                        </a>
+                        <div class="text-center mt-2">
+                            <small class="text-muted">
+                                <i class="bi bi-shield-lock me-1"></i>Secure & Encrypted
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('input[name="payment_method"]').forEach(r => {
+        r.addEventListener('change', () => {
+            const info = document.getElementById('mobilePayInfo');
+            info.classList.toggle('d-none', r.value === 'cod');
+        });
+    });
+</script>
+{% endblock %}

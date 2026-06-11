@@ -1,0 +1,71 @@
+{% extends 'base_admin.html' %}
+{% block title %}Staff Management — Subhan Super Store{% endblock %}
+{% block page_title %}Staff Management{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0"><i class="bi bi-person-badge me-2 text-success"></i>Staff Members</h6>
+        <a href="{% url 'accounts:staff_create' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>Add Staff
+        </a>
+    </div>
+    <div class="card-body px-4 pb-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in staff %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="bg-success text-white rounded-circle d-flex align-items-center
+                                            justify-content-center" style="width:32px;height:32px;font-size:0.75rem;">
+                                    {{ member.username|first|upper }}
+                                </div>
+                                {{ member.get_full_name|default:'—' }}
+                            </div>
+                        </td>
+                        <td>{{ member.username }}</td>
+                        <td>{{ member.email }}</td>
+                        <td>
+                            <span class="badge
+                                {% if member.role == 'superadmin' %}bg-danger
+                                {% elif member.role == 'admin' %}bg-dark
+                                {% elif member.role == 'manager' %}bg-primary
+                                {% elif member.role == 'cashier' %}bg-success
+                                {% else %}bg-secondary{% endif %}">
+                                {{ member.get_role_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if member.is_active %}
+                                <span class="badge bg-success-subtle text-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ member.date_joined|date:"d M Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No staff members found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

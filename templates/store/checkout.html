@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Checkout — Subhan Super Store{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'store:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'store:cart' %}">Cart</a></li>
+            <li class="breadcrumb-item active">Checkout</li>
+        </ol>
+    </nav>
+
+    <h2 class="fw-bold mb-4">
+        <i class="bi bi-bag-check me-2" style="color:#1a6b3c;"></i>Checkout
+    </h2>
+
+    <!-- Progress Steps -->
+    <div class="d-flex align-items-center mb-4 gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge rounded-pill text-white" style="background:#1a6b3c; width:28px; height:28px; line-height:18px;">1</span>
+            <span class="fw-semibold small">Shipping</span>
+        </div>
+        <div class="flex-grow-1 border-top mx-2"></div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge rounded-pill bg-secondary" style="width:28px; height:28px; line-height:18px;">2</span>
+            <span class="text-muted small">Payment</span>
+        </div>
+        <div class="flex-grow-1 border-top mx-2"></div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge rounded-pill bg-secondary" style="width:28px; height:28px; line-height:18px;">3</span>
+            <span class="text-muted small">Confirm</span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Shipping Form -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white fw-bold py-3">
+                    <i class="bi bi-geo-alt me-2" style="color:#1a6b3c;"></i>Delivery Address
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">First Name</label>
+                            <input type="text" class="form-control" value="{{ user.first_name }}" placeholder="First name">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Last Name</label>
+                            <input type="text" class="form-control" value="{{ user.last_name }}" placeholder="Last name">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Phone Number</label>
+                            <input type="tel" class="form-control" value="{{ user.phone }}" placeholder="03XX-XXXXXXX">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Email</label>
+                            <input type="email" class="form-control" value="{{ user.email }}" placeholder="Email address">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Street Address</label>
+                            <input type="text" class="form-control" placeholder="House #, Street, Area">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">City</label>
+                            <input type="text" class="form-control" value="Jaranwala" placeholder="City">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Postal Code</label>
+                            <input type="text" class="form-control" placeholder="Postal code">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Order Notes (optional)</label>
+                            <textarea class="form-control" rows="2"
+                                placeholder="Special instructions for delivery..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-bold py-3">
+                    <i class="bi bi-credit-card me-2" style="color:#1a6b3c;"></i>Payment Method
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="form-check border rounded p-3">
+                            <input class="form-check-input" type="radio" name="payment" id="cod" value="cod" checked>
+                            <label class="form-check-label w-100" for="cod">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-cash-coin fs-4 text-success"></i>
+                                    <div>
+                                        <div class="fw-semibold">Cash on Delivery</div>
+                                        <small class="text-muted">Pay when your order arrives</small>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="form-check border rounded p-3">
+                            <input class="form-check-input" type="radio" name="payment" id="jazzcash" value="jazzcash">
+                            <label class="form-check-label w-100" for="jazzcash">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-phone fs-4 text-danger"></i>
+                                    <div>
+                                        <div class="fw-semibold">JazzCash</div>
+                                        <small class="text-muted">Mobile wallet payment</small>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="form-check border rounded p-3">
+                            <input class="form-check-input" type="radio" name="payment" id="easypaisa" value="easypaisa">
+                            <label class="form-check-label w-100" for="easypaisa">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-phone fs-4 text-success"></i>
+                                    <div>
+                                        <div class="fw-semibold">EasyPaisa</div>
+                                        <small class="text-muted">Mobile wallet payment</small>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm sticky-top" style="top:20px;">
+                <div class="card-header bg-white fw-bold py-3">
+                    <i class="bi bi-receipt me-2" style="color:#1a6b3c;"></i>Order Summary
+                </div>
+                <div class="card-body p-0">
+                    <div class="p-3" style="max-height:260px; overflow-y:auto;">
+                        {% for item in items %}
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            {% if item.product.primary_image %}
+                            <img src="{{ item.product.primary_image.image.url }}"
+                                width="50" height="50" style="object-fit:cover; border-radius:6px;"
+                                alt="{{ item.product.name }}">
+                            {% else %}
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                style="width:50px;height:50px;">
+                                <i class="bi bi-image text-muted"></i>
+                            </div>
+                            {% endif %}
+                            <div class="flex-grow-1">
+                                <p class="mb-0 small fw-semibold">{{ item.product.name|truncatechars:35 }}</p>
+                                <p class="mb-0 small text-muted">Qty: {{ item.quantity }}</p>
+                            </div>
+                            <span class="fw-semibold small">Rs. {{ item.line_total|intcomma }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="border-top p-3">
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-muted">Subtotal</span>
+                            <span>Rs. {{ cart.subtotal|intcomma }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-muted">Delivery</span>
+                            <span class="text-success">
+                                {% if cart.subtotal >= 2000 %}Free{% else %}Rs. 150{% endif %}
+                            </span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Total</span>
+                            <span style="color:#1a6b3c;">
+                                Rs. {% if cart.subtotal >= 2000 %}{{ cart.subtotal|intcomma }}{% else %}{{ cart.subtotal|add:150|intcomma }}{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-top-0 pb-3 px-3">
+                    <div class="alert alert-warning py-2 small text-center mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Order placement will be enabled in <strong>Phase 6</strong>.
+                    </div>
+                    <button class="btn w-100 fw-bold py-2 text-white" style="background-color:#1a6b3c;" disabled>
+                        <i class="bi bi-bag-check me-2"></i>Place Order — Coming Soon
+                    </button>
+                    <a href="{% url 'store:cart' %}" class="btn btn-outline-secondary w-100 mt-2 btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Cart
+                    </a>
+                    <div class="text-center mt-2">
+                        <small class="text-muted">
+                            <i class="bi bi-shield-lock me-1"></i>Secure & Encrypted
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

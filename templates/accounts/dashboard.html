@@ -1,0 +1,509 @@
+{% extends 'base_admin.html' %}
+{% load humanize %}
+
+{% block title %}ERP Dashboard — Subhan Super Store{% endblock %}
+{% block page_title %}ERP Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kpi-card { border-radius: 14px; border: none; box-shadow: 0 2px 12px rgba(0,0,0,.07); transition: transform .2s; }
+    .kpi-card:hover { transform: translateY(-3px); }
+    .kpi-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+    .kpi-value { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+    .kpi-label { font-size: .78rem; color: #888; margin-top: 2px; }
+    .kpi-change { font-size: .75rem; }
+    .chart-card { border: none; box-shadow: 0 2px 12px rgba(0,0,0,.07); border-radius: 14px; }
+    .section-title { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: #888; font-weight: 700; margin-bottom: 12px; }
+    .table th { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: #999; border-bottom: 1px solid #f0f0f0; padding: 8px 12px; }
+    .table td { padding: 10px 12px; border-bottom: 1px solid #f8f8f8; vertical-align: middle; }
+    .badge-status { font-size: .7rem; padding: 4px 8px; border-radius: 6px; font-weight: 600; }
+    .quick-action { border-radius: 12px; padding: 20px; text-align: center; text-decoration: none; display: block; transition: transform .15s, box-shadow .15s; }
+    .quick-action:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+    .quick-action i { font-size: 2rem; display: block; margin-bottom: 8px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Welcome Banner -->
+<div class="rounded-4 mb-4 p-4 text-white d-flex justify-content-between align-items-center flex-wrap gap-3"
+    style="background: linear-gradient(135deg, #1a6b3c 0%, #0d4a28 100%);">
+    <div>
+        <h5 class="fw-bold mb-1">Good day, {{ request.user.get_full_name|default:request.user.username }}!</h5>
+        <p class="mb-0 opacity-75 small">
+            {{ request.user.get_role_display }} &nbsp;·&nbsp; {{ "now"|date:"l, d F Y" }}
+            {% if open_sessions %}&nbsp;·&nbsp; <span class="badge bg-warning text-dark">{{ open_sessions }} POS open</span>{% endif %}
+        </p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'pos:redirect' %}" class="btn btn-warning btn-sm fw-semibold">
+            <i class="bi bi-cash-register me-1"></i>Open POS
+        </a>
+        <a href="{% url 'orders:admin_order_list' %}" class="btn btn-outline-light btn-sm">
+            <i class="bi bi-bag me-1"></i>Orders
+        </a>
+    </div>
+</div>
+
+<!-- ── KPI Row 1: Revenue ─────────────────────────────────────────────────── -->
+<p class="section-title">Revenue Overview</p>
+<div class="row g-3 mb-4">
+
+    <div class="col-6 col-xl-3">
+        <div class="card kpi-card p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="kpi-icon" style="background:#e8f5e9; color:#1a6b3c;">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <div>
+                    <div class="kpi-value" style="color:#1a6b3c;">Rs. {{ total_revenue|floatformat:0|intcomma }}</div>
+                    <div class="kpi-label">Total Revenue</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="card kpi-card p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="kpi-icon" style="background:#fff8e1; color:#f4c430;">
+                    <i class="bi bi-cash-register"></i>
+                </div>
+                <div>
+                    <div class="kpi-value" style="color:#e0a800;">Rs. {{ pos_revenue|intcomma }}</div>
+                    <div class="kpi-label">POS Revenue</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="card kpi-card p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="kpi-icon" style="background:#e3f2fd; color:#1976d2;">
+                    <i class="bi bi-shop"></i>
+                </div>
+                <div>
+                    <div class="kpi-value text-primary">Rs. {{ online_revenue|intcomma }}</div>
+                    <div class="kpi-label">Online Revenue</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="card kpi-card p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="kpi-icon" style="background:#fce4ec; color:#c62828;">
+                    <i class="bi bi-sun"></i>
+                </div>
+                <div>
+                    <div class="kpi-value text-danger">Rs. {{ today_revenue|floatformat:0|intcomma }}</div>
+                    <div class="kpi-label">Today's POS</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── KPI Row 2: Operations ───────────────────────────────────────────────── -->
+<p class="section-title">Operations</p>
+<div class="row g-3 mb-4">
+
+    <div class="col-6 col-sm-4 col-xl-2">
+        <div class="card kpi-card p-3 text-center">
+            <div class="kpi-value">{{ total_orders }}</div>
+            <div class="kpi-label">Online Orders</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-4 col-xl-2">
+        <div class="card kpi-card p-3 text-center">
+            <div class="kpi-value text-warning">{{ pending_orders }}</div>
+            <div class="kpi-label">Pending Orders</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-4 col-xl-2">
+        <div class="card kpi-card p-3 text-center">
+            <div class="kpi-value" style="color:#1a6b3c;">{{ pos_sales_today }}</div>
+            <div class="kpi-label">POS Sales Today</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-4 col-xl-2">
+        <div class="card kpi-card p-3 text-center">
+            <div class="kpi-value text-info">{{ total_products }}</div>
+            <div class="kpi-label">Active Products</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-4 col-xl-2">
+        <div class="card kpi-card p-3 text-center">
+            <div class="kpi-value text-danger">{{ low_stock_count }}</div>
+            <div class="kpi-label">Low Stock</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-4 col-xl-2">
+        <div class="card kpi-card p-3 text-center">
+            <div class="kpi-value text-secondary">{{ total_customers }}</div>
+            <div class="kpi-label">Customers</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Charts Row ─────────────────────────────────────────────────────────── -->
+<div class="row g-4 mb-4">
+
+    <!-- Revenue Chart (30 days) -->
+    <div class="col-lg-8">
+        <div class="card chart-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0">Revenue — Last 30 Days</h6>
+                <div class="d-flex gap-3 small text-muted">
+                    <span><span class="badge" style="background:#1a6b3c;">&nbsp;</span> POS</span>
+                    <span><span class="badge bg-primary">&nbsp;</span> Online</span>
+                </div>
+            </div>
+            <canvas id="revenueChart" height="100"></canvas>
+        </div>
+    </div>
+
+    <!-- Payment Method Doughnut -->
+    <div class="col-lg-4">
+        <div class="card chart-card p-4 h-100">
+            <h6 class="fw-bold mb-3">POS Payment Methods</h6>
+            <canvas id="paymentChart" height="160"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Second Charts Row ──────────────────────────────────────────────────── -->
+<div class="row g-4 mb-4">
+
+    <!-- Top Products -->
+    <div class="col-lg-6">
+        <div class="card chart-card p-4 h-100">
+            <h6 class="fw-bold mb-3">Top Products by Units Sold (POS)</h6>
+            <canvas id="topProductsChart" height="120"></canvas>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-6">
+        <div class="card chart-card p-4 h-100">
+            <h6 class="fw-bold mb-3">Quick Actions</h6>
+            <div class="row g-3">
+                {% if request.user.is_cashier %}
+                <div class="col-6">
+                    <a href="{% url 'pos:redirect' %}" class="quick-action text-white"
+                        style="background: linear-gradient(135deg,#1a6b3c,#2d9a57);">
+                        <i class="bi bi-cash-register"></i>
+                        <span class="fw-semibold small">Open POS</span>
+                    </a>
+                </div>
+                {% endif %}
+                {% if request.user.is_manager %}
+                <div class="col-6">
+                    <a href="{% url 'products:product_list' %}" class="quick-action text-white"
+                        style="background: linear-gradient(135deg,#1565c0,#1976d2);">
+                        <i class="bi bi-box-seam"></i>
+                        <span class="fw-semibold small">Products</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'orders:admin_order_list' %}" class="quick-action text-white"
+                        style="background: linear-gradient(135deg,#e65100,#f57c00);">
+                        <i class="bi bi-bag"></i>
+                        <span class="fw-semibold small">Orders</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'inventory:dashboard' %}" class="quick-action text-white"
+                        style="background: linear-gradient(135deg,#6a1b9a,#8e24aa);">
+                        <i class="bi bi-archive"></i>
+                        <span class="fw-semibold small">Inventory</span>
+                    </a>
+                </div>
+                {% endif %}
+                {% if request.user.is_admin %}
+                <div class="col-6">
+                    <a href="{% url 'accounts:staff_create' %}" class="quick-action text-white"
+                        style="background: linear-gradient(135deg,#00695c,#00897b);">
+                        <i class="bi bi-person-plus"></i>
+                        <span class="fw-semibold small">Add Staff</span>
+                    </a>
+                </div>
+                {% endif %}
+                <div class="col-6">
+                    <a href="{% url 'pos:session_list' %}" class="quick-action text-white"
+                        style="background: linear-gradient(135deg,#37474f,#546e7a);">
+                        <i class="bi bi-clock-history"></i>
+                        <span class="fw-semibold small">POS Sessions</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'store:product_list' %}" class="quick-action text-dark"
+                        style="background: linear-gradient(135deg,#f4c430,#e0a800);">
+                        <i class="bi bi-shop"></i>
+                        <span class="fw-semibold small">View Store</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Tables Row ─────────────────────────────────────────────────────────── -->
+<div class="row g-4 mb-4">
+
+    <!-- Recent Online Orders -->
+    <div class="col-lg-6">
+        <div class="card chart-card">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="bi bi-bag me-2" style="color:#1a6b3c;"></i>Recent Online Orders</h6>
+                <a href="{% url 'orders:admin_order_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+            </div>
+            <div class="card-body px-0 pb-0">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Order #</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td class="ps-4">
+                                <a href="{% url 'orders:admin_order_detail' order.order_number %}"
+                                    class="fw-semibold text-decoration-none" style="color:#1a6b3c;">
+                                    {{ order.order_number }}
+                                </a>
+                            </td>
+                            <td class="small text-muted">{{ order.shipping_name|truncatechars:18 }}</td>
+                            <td class="fw-semibold small">Rs. {{ order.total_amount|intcomma }}</td>
+                            <td>
+                                <span class="badge bg-{{ order.status_badge_class }} badge-status">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-4">No orders yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent POS Sales -->
+    <div class="col-lg-6">
+        <div class="card chart-card">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="bi bi-cash-register me-2" style="color:#e0a800;"></i>Recent POS Sales</h6>
+                <a href="{% url 'pos:session_list' %}" class="btn btn-sm btn-outline-secondary">Sessions</a>
+            </div>
+            <div class="card-body px-0 pb-0">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Sale #</th>
+                            <th>Cashier</th>
+                            <th>Payment</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in recent_pos_sales %}
+                        <tr>
+                            <td class="ps-4">
+                                <a href="{% url 'pos:receipt' sale.sale_number %}" target="_blank"
+                                    class="fw-semibold text-decoration-none" style="color:#e0a800;">
+                                    {{ sale.sale_number }}
+                                </a>
+                            </td>
+                            <td class="small text-muted">{{ sale.cashier.get_full_name|default:sale.cashier.username|truncatechars:14 }}</td>
+                            <td>
+                                <span class="badge bg-light text-dark border small">
+                                    {{ sale.get_payment_method_display }}
+                                </span>
+                            </td>
+                            <td class="fw-semibold small" style="color:#1a6b3c;">Rs. {{ sale.total_amount|intcomma }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-4">No POS sales yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Low Stock Alert ────────────────────────────────────────────────────── -->
+{% if low_stock_products %}
+<div class="card chart-card mb-4">
+    <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0 text-danger">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>Low Stock Alert
+            <span class="badge bg-danger ms-2">{{ low_stock_count }}</span>
+        </h6>
+        <a href="{% url 'inventory:low_stock' %}" class="btn btn-sm btn-outline-danger">View All</a>
+    </div>
+    <div class="card-body px-0 pb-0">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th class="ps-4">Product</th>
+                    <th>Category</th>
+                    <th>SKU</th>
+                    <th>Stock</th>
+                    <th>Threshold</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in low_stock_products %}
+                <tr>
+                    <td class="ps-4 fw-semibold small">{{ p.name|truncatechars:30 }}</td>
+                    <td class="text-muted small">{{ p.category.name }}</td>
+                    <td class="text-muted small">{{ p.sku }}</td>
+                    <td>
+                        <span class="fw-bold {% if p.stock_quantity <= 0 %}text-danger{% else %}text-warning{% endif %}">
+                            {{ p.stock_quantity }}
+                        </span>
+                    </td>
+                    <td class="text-muted small">{{ p.low_stock_threshold }}</td>
+                    <td>
+                        {% if p.stock_quantity <= 0 %}
+                            <span class="badge bg-danger badge-status">Out of Stock</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark badge-status">Low Stock</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#888';
+
+// ── Revenue Line Chart ──────────────────────────────────────────────────────
+const labels = {{ chart_labels|safe }};
+const posData = {{ chart_pos|safe }};
+const onlineData = {{ chart_online|safe }};
+
+new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: {
+        labels,
+        datasets: [
+            {
+                label: 'POS Revenue',
+                data: posData,
+                borderColor: '#1a6b3c',
+                backgroundColor: 'rgba(26,107,60,.08)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 2,
+                borderWidth: 2,
+            },
+            {
+                label: 'Online Revenue',
+                data: onlineData,
+                borderColor: '#1976d2',
+                backgroundColor: 'rgba(25,118,210,.06)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 2,
+                borderWidth: 2,
+            },
+        ],
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: v => 'Rs.' + (v >= 1000 ? (v/1000).toFixed(0)+'k' : v),
+                },
+                grid: { color: '#f0f0f0' },
+            },
+            x: { grid: { display: false } },
+        },
+    },
+});
+
+// ── Payment Method Doughnut ─────────────────────────────────────────────────
+const pmLabels = {{ payment_labels|safe }};
+const pmValues = {{ payment_values|safe }};
+if (pmLabels.length) {
+    new Chart(document.getElementById('paymentChart'), {
+        type: 'doughnut',
+        data: {
+            labels: pmLabels,
+            datasets: [{
+                data: pmValues,
+                backgroundColor: ['#1a6b3c', '#1976d2', '#43a047', '#f57c00'],
+                borderWidth: 2,
+                borderColor: '#fff',
+            }],
+        },
+        options: {
+            responsive: true,
+            cutout: '65%',
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 16, boxWidth: 12 } },
+            },
+        },
+    });
+} else {
+    document.getElementById('paymentChart').parentElement.innerHTML += '<p class="text-muted text-center small mt-3">No POS sales yet</p>';
+}
+
+// ── Top Products Bar ────────────────────────────────────────────────────────
+const tpLabels = {{ top_product_labels|safe }};
+const tpQty = {{ top_product_qty|safe }};
+if (tpLabels.length) {
+    new Chart(document.getElementById('topProductsChart'), {
+        type: 'bar',
+        data: {
+            labels: tpLabels,
+            datasets: [{
+                label: 'Units Sold',
+                data: tpQty,
+                backgroundColor: '#1a6b3c',
+                borderRadius: 6,
+            }],
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+                x: { grid: { display: false } },
+            },
+        },
+    });
+} else {
+    document.getElementById('topProductsChart').parentElement.innerHTML += '<p class="text-muted text-center small mt-3">No POS sales yet</p>';
+}
+</script>
+{% endblock %}

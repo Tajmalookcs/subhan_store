@@ -1,0 +1,72 @@
+{% load humanize %}
+<div class="col-6 col-md-4 col-lg-3">
+    <div class="card h-100 border-0 shadow-sm product-card">
+        <div class="position-relative">
+            {% if product.primary_image %}
+                <img src="{{ product.primary_image.image.url }}" class="card-img-top"
+                    style="height:200px; object-fit:cover;" alt="{{ product.name }}">
+            {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                    style="height:200px;">
+                    <i class="bi bi-image text-muted" style="font-size:3rem;"></i>
+                </div>
+            {% endif %}
+            {% if product.discount_percentage %}
+                <span class="badge badge-sale position-absolute top-0 start-0 m-2">
+                    -{{ product.discount_percentage }}%
+                </span>
+            {% endif %}
+            {% if product.is_featured %}
+                <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">
+                    <i class="bi bi-star-fill"></i>
+                </span>
+            {% endif %}
+        </div>
+        <div class="card-body d-flex flex-column p-3">
+            <p class="text-muted small mb-1">{{ product.category.name }}</p>
+            <h6 class="card-title mb-1 fw-semibold">
+                <a href="{% url 'store:product_detail' product.slug %}"
+                    class="text-decoration-none text-dark stretched-link-title">
+                    {{ product.name|truncatechars:50 }}
+                </a>
+            </h6>
+            {% if product.brand %}
+                <p class="text-muted small mb-2">{{ product.brand.name }}</p>
+            {% endif %}
+            <div class="mt-auto">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="fw-bold text-success" style="color:#1a6b3c !important;">
+                        Rs. {{ product.effective_price|intcomma }}
+                    </span>
+                    {% if product.sale_price %}
+                        <span class="price-old">Rs. {{ product.selling_price|intcomma }}</span>
+                    {% endif %}
+                </div>
+                {% if product.stock_quantity <= 0 %}
+                    <span class="badge bg-danger w-100">Out of Stock</span>
+                {% else %}
+                    <div class="d-flex gap-1">
+                        <form method="post" action="{% url 'store:cart_add' product.pk %}" class="flex-grow-1">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <button type="submit" class="btn btn-sm w-100 fw-semibold"
+                                style="background-color:#1a6b3c; color:white; border:none;">
+                                <i class="bi bi-cart-plus me-1"></i>Add
+                            </button>
+                        </form>
+                        {% if user.is_authenticated %}
+                        <form method="post" action="{% url 'store:wishlist_toggle' product.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
