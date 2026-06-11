@@ -53,39 +53,39 @@ class CustomUser(AbstractUser):
 
     @property
     def is_superadmin(self):
-        return self.role == 'superadmin'
+        return self.role == 'superadmin' or self.is_superuser
 
     @property
     def is_admin(self):
-        return self.role in ('superadmin', 'admin')
+        return self.role in ('superadmin', 'admin') or self.is_superuser
 
     @property
     def is_manager(self):
-        return self.role in ('superadmin', 'admin', 'manager')
+        return self.role in ('superadmin', 'admin', 'manager') or self.is_superuser
 
     @property
     def is_cashier(self):
-        return self.role in ('superadmin', 'admin', 'manager', 'cashier')
+        return self.role in ('superadmin', 'admin', 'manager', 'cashier') or self.is_superuser
 
     @property
     def is_inventory_staff(self):
-        return self.role in ('superadmin', 'admin', 'manager', 'inventory_staff')
+        return self.role in ('superadmin', 'admin', 'manager', 'inventory_staff') or self.is_superuser
 
     @property
     def is_delivery_staff(self):
-        return self.role in ('superadmin', 'admin', 'manager', 'delivery_staff')
+        return self.role in ('superadmin', 'admin', 'manager', 'delivery_staff') or self.is_superuser
 
     @property
     def is_customer(self):
-        return self.role == 'customer'
+        return self.role == 'customer' and not self.is_superuser
 
     @property
     def is_staff_member(self):
-        """True for any non-customer role."""
-        return self.role != 'customer'
+        """True for any non-customer role, or Django superuser."""
+        return self.role != 'customer' or self.is_superuser
 
     def get_dashboard_url(self):
         """Return the appropriate dashboard URL based on role."""
-        if self.role == 'customer':
+        if self.role == 'customer' and not self.is_superuser:
             return '/account/'
         return '/dashboard/'

@@ -197,27 +197,58 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         import json
-        from django.db.models import Sum, Count, Q
-        from django.db.models.functions import TruncDate
+        from django.db.models import Sum, Count, Q, F as Fq
+        from django.db.models.functions import TruncDate, TruncMonth
         from django.utils import timezone
-        from datetime import timedelta
+        from datetime import timedelta, date
 
         context = super().get_context_data(**kwargs)
         today = timezone.now().date()
         thirty_days_ago = today - timedelta(days=29)
 
-        # ── User stats ──────────────────────────────────────────────────────
+        # ── Month boundaries ─────────────────────────────────────────────────
+        this_month_start = today.replace(day=1)
+        last_month_end = this_month_start - timedelta(days=1)
+        last_month_start = last_month_end.replace(day=1)
+
+        # ── User / Customer stats ────────────────────────────────────────────
         context['total_customers'] = CustomUser.objects.filter(role='customer').count()
         context['total_staff'] = CustomUser.objects.exclude(role='customer').count()
         context['new_customers_today'] = CustomUser.objects.filter(
             role='customer', date_joined__date=today
         ).count()
+        context['new_customers_month'] = CustomUser.objects.filter(
+            role='customer', date_joined__date__gte=this_month_start
+        ).count()
+
+        # Customer growth — last 6 months
+        cust_growth = []
+        cust_labels = []
+        for i in range(5, -1, -1):
+            ref = today.replace(day=1) - timedelta(days=1)
+            for _ in range(i):
+                ref = ref.replace(day=1) - timedelta(days=1)
+            m_start = ref.replace(day=1)
+            m_end = ref
+            count = CustomUser.objects.filter(
+                role='customer',
+                date_joined__date__gte=m_start,
+                date_joined__date__lte=m_end,
+            ).count()
+            cust_growth.append(count)
+            cust_labels.append(m_start.strftime('%b %Y'))
+        context['cust_growth_labels'] = json.dumps(cust_labels)
+        context['cust_growth_data'] = json.dumps(cust_growth)
+
+        # Staff list with basic info
+        context['staff_list'] = CustomUser.objects.exclude(
+            role='customer'
+        ).order_by('role', 'username')
 
         # ── Product / Inventory stats ────────────────────────────────────────
         try:
             from apps.products.models import Product, Category
             context['total_products'] = Product.objects.filter(is_active=True).count()
-            from django.db.models import F as Fq
             context['low_stock_count'] = Product.objects.filter(
                 is_active=True,
                 stock_quantity__lte=Fq('low_stock_threshold'),
@@ -229,11 +260,13 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
                 is_active=True,
                 stock_quantity__lte=Fq('low_stock_threshold'),
             ).select_related('category').order_by('stock_quantity')[:8]
+            context['total_categories'] = Category.objects.filter(is_active=True).count()
         except Exception:
             context['total_products'] = 0
             context['low_stock_count'] = 0
             context['out_of_stock_count'] = 0
             context['low_stock_products'] = []
+            context['total_categories'] = 0
 
         # ── Order stats ──────────────────────────────────────────────────────
         try:
@@ -242,10 +275,22 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             context['total_orders'] = orders_qs.count()
             context['pending_orders'] = Order.objects.filter(status='pending').count()
             context['orders_today'] = Order.objects.filter(created_at__date=today).count()
-            context['online_revenue'] = orders_qs.aggregate(
-                t=Sum('total_amount')
-            )['t'] or 0
+            context['online_revenue'] = orders_qs.aggregate(t=Sum('total_amount'))['t'] or 0
+            context['online_revenue_month'] = Order.objects.filter(
+                created_at__date__gte=this_month_start
+            ).exclude(status='cancelled').aggregate(t=Sum('total_amount'))['t'] or 0
+            context['online_revenue_last_month'] = Order.objects.filter(
+                created_at__date__gte=last_month_start,
+                created_at__date__lte=last_month_end,
+            ).exclude(status='cancelled').aggregate(t=Sum('total_amount'))['t'] or 0
             context['recent_orders'] = Order.objects.select_related('user').order_by('-created_at')[:8]
+
+            # Order status breakdown for donut chart
+            status_data = list(
+                Order.objects.values('status').annotate(cnt=Count('id')).order_by('-cnt')
+            )
+            context['order_status_labels'] = json.dumps([s['status'].title() for s in status_data])
+            context['order_status_data'] = json.dumps([s['cnt'] for s in status_data])
 
             # Daily online revenue — last 30 days
             daily_online = dict(
@@ -260,14 +305,25 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             context['pending_orders'] = 0
             context['orders_today'] = 0
             context['online_revenue'] = 0
+            context['online_revenue_month'] = 0
+            context['online_revenue_last_month'] = 0
             context['recent_orders'] = []
+            context['order_status_labels'] = json.dumps([])
+            context['order_status_data'] = json.dumps([])
             daily_online = {}
 
         # ── POS stats ────────────────────────────────────────────────────────
         try:
-            from apps.pos.models import POSSale, POSSession
+            from apps.pos.models import POSSale, POSSession, POSSaleItem
             pos_qs = POSSale.objects.filter(is_void=False)
             context['pos_revenue'] = pos_qs.aggregate(t=Sum('total_amount'))['t'] or 0
+            context['pos_revenue_month'] = pos_qs.filter(
+                created_at__date__gte=this_month_start
+            ).aggregate(t=Sum('total_amount'))['t'] or 0
+            context['pos_revenue_last_month'] = pos_qs.filter(
+                created_at__date__gte=last_month_start,
+                created_at__date__lte=last_month_end,
+            ).aggregate(t=Sum('total_amount'))['t'] or 0
             context['pos_sales_today'] = pos_qs.filter(created_at__date=today).count()
             context['pos_revenue_today'] = pos_qs.filter(
                 created_at__date=today
@@ -275,7 +331,7 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             context['open_sessions'] = POSSession.objects.filter(status='open').count()
             context['recent_pos_sales'] = pos_qs.select_related('cashier').order_by('-created_at')[:8]
 
-            # Daily POS revenue
+            # Daily POS revenue — last 30 days
             daily_pos = dict(
                 pos_qs.filter(
                     created_at__date__gte=thirty_days_ago
@@ -293,18 +349,37 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             context['payment_labels'] = json.dumps([p['payment_method'].title() for p in pm_data])
             context['payment_values'] = json.dumps([float(p['total'] or 0) for p in pm_data])
 
-            # Top products (POS)
-            from apps.pos.models import POSSaleItem
+            # Top products by units sold (POS)
             top_products = list(
                 POSSaleItem.objects.values('product_name').annotate(
                     qty=Sum('quantity'), rev=Sum('line_total')
-                ).order_by('-qty')[:7]
+                ).order_by('-rev')[:7]
             )
             context['top_product_labels'] = json.dumps([p['product_name'][:20] for p in top_products])
             context['top_product_qty'] = json.dumps([int(p['qty']) for p in top_products])
+            context['top_product_rev'] = json.dumps([float(p['rev'] or 0) for p in top_products])
+
+            # Staff performance (sales per cashier this month)
+            staff_perf = list(
+                pos_qs.filter(
+                    created_at__date__gte=this_month_start
+                ).values('cashier__username', 'cashier__first_name', 'cashier__last_name').annotate(
+                    sales_count=Count('id'),
+                    total_rev=Sum('total_amount'),
+                ).order_by('-total_rev')[:8]
+            )
+            for sp in staff_perf:
+                name = (f"{sp['cashier__first_name']} {sp['cashier__last_name']}").strip()
+                sp['display_name'] = name or sp['cashier__username']
+            context['staff_performance'] = staff_perf
+            context['staff_perf_labels'] = json.dumps([sp['display_name'][:14] for sp in staff_perf])
+            context['staff_perf_sales'] = json.dumps([sp['sales_count'] for sp in staff_perf])
+            context['staff_perf_rev'] = json.dumps([float(sp['total_rev'] or 0) for sp in staff_perf])
 
         except Exception:
             context['pos_revenue'] = 0
+            context['pos_revenue_month'] = 0
+            context['pos_revenue_last_month'] = 0
             context['pos_sales_today'] = 0
             context['pos_revenue_today'] = 0
             context['open_sessions'] = 0
@@ -314,10 +389,22 @@ class AdminDashboardView(LoginRequiredMixin, TemplateView):
             context['payment_values'] = json.dumps([])
             context['top_product_labels'] = json.dumps([])
             context['top_product_qty'] = json.dumps([])
+            context['top_product_rev'] = json.dumps([])
+            context['staff_performance'] = []
+            context['staff_perf_labels'] = json.dumps([])
+            context['staff_perf_sales'] = json.dumps([])
+            context['staff_perf_rev'] = json.dumps([])
 
         # ── Combined revenue ─────────────────────────────────────────────────
         context['total_revenue'] = float(context['online_revenue']) + float(context['pos_revenue'])
+        context['total_revenue_month'] = float(context['online_revenue_month']) + float(context['pos_revenue_month'])
+        context['total_revenue_last_month'] = float(context['online_revenue_last_month']) + float(context['pos_revenue_last_month'])
         context['today_revenue'] = float(context.get('pos_revenue_today', 0))
+
+        # Month-on-month change %
+        lm = context['total_revenue_last_month']
+        tm = context['total_revenue_month']
+        context['revenue_mom_pct'] = round(((tm - lm) / lm * 100) if lm else 0, 1)
 
         # ── Daily combined chart (last 30 days) ──────────────────────────────
         date_labels, online_series, pos_series = [], [], []
