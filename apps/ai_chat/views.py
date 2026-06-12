@@ -95,11 +95,10 @@ def chat_message(request):
             f'{api_url.rstrip("/")}/chat/completions',
             headers={
                 'Authorization': f'Bearer {api_key}',
-                'x-goog-api-key': api_key,
                 'Content-Type': 'application/json',
             },
             json={
-                'model': 'gemini-2.0-flash',
+                'model': 'llama-3.3-70b-versatile',
                 'messages': messages,
                 'max_tokens': 400,
                 'temperature': 0.7,
