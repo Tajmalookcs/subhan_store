@@ -98,7 +98,7 @@ def chat_message(request):
                 'Content-Type': 'application/json',
             },
             json={
-                'model': 'gpt-4o-mini',
+                'model': 'gemini-2.0-flash',
                 'messages': messages,
                 'max_tokens': 400,
                 'temperature': 0.7,
