@@ -95,6 +95,7 @@ def chat_message(request):
             f'{api_url.rstrip("/")}/chat/completions',
             headers={
                 'Authorization': f'Bearer {api_key}',
+                'x-goog-api-key': api_key,
                 'Content-Type': 'application/json',
             },
             json={
