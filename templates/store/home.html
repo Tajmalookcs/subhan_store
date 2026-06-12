@@ -5,10 +5,56 @@
 
 {% block extra_css %}
 <style>
+    /* ── Hero ── */
     .hero-section {
-        background: linear-gradient(135deg, #1a6b3c 0%, #0d4a28 60%, #1a1a2e 100%);
-        min-height: 480px;
+        background: linear-gradient(135deg, #080f1e 0%, #0d1b3a 45%, #131d35 75%, #0a1220 100%);
+        min-height: 520px;
+        position: relative;
+        overflow: hidden;
     }
+    .hero-section::before {
+        content: '';
+        position: absolute; inset: 0;
+        background:
+            radial-gradient(ellipse 60% 80% at 55% 50%, rgba(160,30,20,0.13) 0%, transparent 70%),
+            radial-gradient(ellipse 40% 60% at 10% 50%, rgba(192,57,43,0.07) 0%, transparent 60%);
+        pointer-events: none;
+    }
+    /* dot-grid texture */
+    .hero-section::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+        background-size: 28px 28px;
+        pointer-events: none;
+    }
+    .hero-oval {
+        width: 290px; height: 200px;
+        background: linear-gradient(145deg, #c0392b 0%, #8b1a12 100%);
+        border-radius: 50%;
+        border: 3px solid rgba(255,255,255,0.18);
+        box-shadow: 0 0 60px rgba(192,57,43,0.45), inset 0 2px 10px rgba(255,255,255,0.08);
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        position: relative;
+    }
+    .hero-oval::after {
+        content: '';
+        position: absolute; inset: 8px;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.15);
+        pointer-events: none;
+    }
+    .quality-script {
+        font-family: 'Georgia', 'Times New Roman', serif;
+        font-style: italic;
+        font-size: 2.4rem;
+        color: #d4a017;
+        line-height: 1;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    /* ── General ── */
     .product-card { transition: transform .2s, box-shadow .2s; }
     .product-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
     .badge-sale { background-color: #dc3545; }
@@ -22,26 +68,75 @@
 
 {% block content %}
 
-<!-- Hero Banner -->
+<!-- ══ Hero Banner ══ -->
 <section class="hero-section d-flex align-items-center text-white">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <p class="text-warning fw-semibold mb-2 fs-5">Welcome to</p>
-                <h1 class="display-4 fw-bold mb-3">Subhan <span style="color:#f4c430;">Super Store</span></h1>
-                <p class="lead mb-4 text-white-75">Your one-stop shop for groceries, electronics, clothing and more. Quality products at unbeatable prices in Jaranwala.</p>
-                <div class="d-flex gap-3 flex-wrap">
-                    <a href="{% url 'store:product_list' %}" class="btn btn-warning btn-lg fw-semibold px-4">
+    <div class="container position-relative" style="z-index:3; padding-top:3rem; padding-bottom:3rem;">
+        <div class="row align-items-center g-4">
+
+            <!-- Left — Store info & CTA -->
+            <div class="col-lg-5">
+                <p class="mb-1 text-uppercase fw-semibold" style="color:#7aaed4; letter-spacing:3px; font-size:.8rem;">
+                    Welcome to
+                </p>
+                <h1 class="fw-bold mb-0" style="font-size:clamp(2.4rem,5vw,3.4rem); line-height:1.05; letter-spacing:-1px;">
+                    Subhan
+                </h1>
+                <h2 class="fw-bold mb-3" style="font-size:clamp(1rem,2.5vw,1.5rem); color:#c0392b; letter-spacing:5px; text-transform:uppercase; margin-top:2px;">
+                    Super Store
+                </h2>
+                <p class="mb-4" style="color:#94b4cc; font-size:.95rem; line-height:1.75; max-width:420px;">
+                    Groceries, cosmetics, household essentials &amp; more —
+                    trusted by families in <strong style="color:#c8d8e4;">Jaranwala</strong> since&nbsp;1996.
+                </p>
+                <div class="d-flex gap-3 flex-wrap mb-4">
+                    <a href="{% url 'store:product_list' %}"
+                       class="btn btn-lg fw-semibold px-4"
+                       style="background:#c0392b; border-color:#a93226; color:#fff;">
                         <i class="bi bi-shop me-2"></i>Shop Now
                     </a>
-                    <a href="{% url 'store:product_list' %}?on_sale=1" class="btn btn-outline-light btn-lg px-4">
+                    <a href="{% url 'store:product_list' %}?on_sale=1"
+                       class="btn btn-outline-light btn-lg px-4">
                         <i class="bi bi-tag me-2"></i>View Deals
                     </a>
                 </div>
+                <!-- contact line -->
+                <p class="mb-0" style="color:#566e84; font-size:.78rem; letter-spacing:.5px;">
+                    <i class="bi bi-telephone-fill me-1" style="color:#c0392b;"></i>
+                    041-431 2982 &nbsp;·&nbsp; 0371-431 2982 &nbsp;·&nbsp; 0301-431 2988
+                </p>
             </div>
-            <div class="col-lg-6 text-center d-none d-lg-block">
-                <i class="bi bi-bag-heart" style="font-size:10rem; opacity:.2;"></i>
+
+            <!-- Centre — Red oval logo -->
+            <div class="col-lg-4 text-center d-none d-lg-flex justify-content-center">
+                <div class="hero-oval">
+                    <div class="fw-bold text-white mb-0"
+                         style="font-size:2rem; font-style:italic; letter-spacing:1px; text-shadow:2px 2px 6px rgba(0,0,0,.5);">
+                        Subhan
+                    </div>
+                    <div class="fw-bold text-white"
+                         style="font-size:.85rem; letter-spacing:5px; text-transform:uppercase; opacity:.95;">
+                        SUPER STORE
+                    </div>
+                    <div style="width:60%; height:1px; background:rgba(255,255,255,.35); margin:8px auto;"></div>
+                    <div style="font-size:.72rem; letter-spacing:3px; color:rgba(255,255,255,.8); text-transform:uppercase;">
+                        Since 1996
+                    </div>
+                </div>
             </div>
+
+            <!-- Right — Tagline card -->
+            <div class="col-lg-3 d-none d-lg-flex flex-column align-items-center justify-content-center">
+                <div class="text-center px-2">
+                    <p class="mb-1 text-uppercase" style="color:#7aaed4; font-size:.72rem; letter-spacing:3px;">Our Promise</p>
+                    <p class="mb-0" style="color:#94b4cc; font-size:.9rem; font-style:italic;">No Compromise on</p>
+                    <p class="quality-script mb-2">Quality</p>
+                    <div style="width:36px; height:2px; background:#c0392b; margin:0 auto 1rem;"></div>
+                    <p style="color:#566e84; font-size:.75rem; line-height:1.7; max-width:180px; margin:0 auto;">
+                        Trusted by thousands of families for over 28&nbsp;years.
+                    </p>
+                </div>
+            </div>
+
         </div>
     </div>
 </section>
