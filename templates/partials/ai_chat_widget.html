@@ -1,0 +1,239 @@
+<!-- ══ Subhan AI Chat Widget ══ -->
+<style>
+  #sas-bubble {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  }
+  #sas-btn {
+    width: 58px; height: 58px; border-radius: 50%;
+    background: linear-gradient(135deg, #c0392b, #8b1a12);
+    border: none; color: #fff; font-size: 1.5rem;
+    box-shadow: 0 4px 18px rgba(192,57,43,.5);
+    cursor: pointer; transition: transform .2s, box-shadow .2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #sas-btn:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(192,57,43,.6); }
+  #sas-badge {
+    position: absolute; top: -2px; right: -2px;
+    background: #d4a017; color: #fff;
+    font-size: .6rem; font-weight: 700;
+    border-radius: 999px; padding: 2px 6px;
+    display: none;
+  }
+
+  #sas-panel {
+    position: fixed; bottom: 94px; right: 24px; z-index: 9998;
+    width: 340px; max-width: calc(100vw - 32px);
+    background: #fff; border-radius: 16px;
+    box-shadow: 0 12px 48px rgba(0,0,0,.18);
+    display: none; flex-direction: column;
+    overflow: hidden; font-family: inherit;
+    animation: sas-slide-up .25s ease;
+  }
+  @keyframes sas-slide-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  #sas-header {
+    background: linear-gradient(135deg, #0d1b3a, #1a2a50);
+    color: #fff; padding: 14px 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sas-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #c0392b, #8b1a12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+  }
+  .sas-online { width: 8px; height: 8px; background: #2ecc71; border-radius: 50%; display: inline-block; margin-left: 4px; }
+
+  #sas-messages {
+    flex: 1; overflow-y: auto; padding: 16px;
+    display: flex; flex-direction: column; gap: 10px;
+    max-height: 320px; min-height: 200px;
+    background: #f8f9fa;
+  }
+  #sas-messages::-webkit-scrollbar { width: 4px; }
+  #sas-messages::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+
+  .sas-msg { display: flex; gap: 8px; align-items: flex-end; }
+  .sas-msg.user { flex-direction: row-reverse; }
+  .sas-bubble-text {
+    max-width: 80%; padding: 10px 13px; border-radius: 14px;
+    font-size: .85rem; line-height: 1.55; white-space: pre-wrap;
+  }
+  .sas-msg.bot  .sas-bubble-text { background: #fff; color: #1a1a2e; border-bottom-left-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .sas-msg.user .sas-bubble-text { background: #c0392b; color: #fff; border-bottom-right-radius: 4px; }
+  .sas-typing .sas-bubble-text { background: #fff; color: #999; font-style: italic; font-size: .8rem; }
+
+  #sas-quick { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 16px 4px; background: #f8f9fa; }
+  .sas-chip {
+    font-size: .72rem; padding: 4px 10px; border-radius: 20px;
+    border: 1px solid #c0392b; color: #c0392b; background: #fff;
+    cursor: pointer; white-space: nowrap; transition: background .15s;
+  }
+  .sas-chip:hover { background: #c0392b; color: #fff; }
+
+  #sas-footer {
+    padding: 10px 12px; border-top: 1px solid #eee; background: #fff;
+    display: flex; gap: 8px; align-items: center;
+  }
+  #sas-input {
+    flex: 1; border: 1px solid #ddd; border-radius: 20px;
+    padding: 8px 14px; font-size: .85rem; outline: none;
+    transition: border-color .2s;
+  }
+  #sas-input:focus { border-color: #c0392b; }
+  #sas-send {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #c0392b; border: none; color: #fff;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background .2s;
+  }
+  #sas-send:hover { background: #a93226; }
+  #sas-send:disabled { background: #ccc; cursor: not-allowed; }
+</style>
+
+<!-- Floating button -->
+<div id="sas-bubble">
+  <button id="sas-btn" onclick="sasToggle()" title="Chat with Subhan Assistant">
+    <i class="bi bi-chat-dots-fill" id="sas-icon"></i>
+  </button>
+  <span id="sas-badge">1</span>
+</div>
+
+<!-- Chat panel -->
+<div id="sas-panel">
+  <div id="sas-header">
+    <div class="sas-avatar"><i class="bi bi-robot"></i></div>
+    <div>
+      <div class="fw-semibold" style="font-size:.9rem;">Subhan Assistant <span class="sas-online"></span></div>
+      <div style="font-size:.72rem; opacity:.75;">Ask me anything about our products</div>
+    </div>
+    <button onclick="sasToggle()" style="margin-left:auto; background:none; border:none; color:#fff; font-size:1.1rem; cursor:pointer;">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <div id="sas-messages">
+    <div class="sas-msg bot">
+      <div class="sas-avatar" style="width:28px;height:28px;font-size:.75rem;background:linear-gradient(135deg,#c0392b,#8b1a12);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;">
+        <i class="bi bi-robot"></i>
+      </div>
+      <div class="sas-bubble-text">
+        Assalam o Alaikum! 👋 I'm your Subhan Store assistant.<br><br>
+        I can help you find products, check prices, or answer any questions about our store. How can I help you today?
+      </div>
+    </div>
+  </div>
+
+  <div id="sas-quick">
+    <span class="sas-chip" onclick="sasSend('What products do you have?')">Browse products</span>
+    <span class="sas-chip" onclick="sasSend('What are your current deals and discounts?')">View deals</span>
+    <span class="sas-chip" onclick="sasSend('What are your store timings and location?')">Store info</span>
+  </div>
+
+  <div id="sas-footer">
+    <input id="sas-input" type="text" placeholder="Type your message..." maxlength="500"
+      onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sasSend(); }">
+    <button id="sas-send" onclick="sasSend()"><i class="bi bi-send-fill" style="font-size:.8rem;"></i></button>
+  </div>
+</div>
+
+<script>
+(function() {
+  const CHAT_URL = '{% url "ai_chat:message" %}';
+  const CSRF = '{{ csrf_token }}';
+  let history = [];
+  let open = false;
+
+  window.sasToggle = function() {
+    open = !open;
+    document.getElementById('sas-panel').style.display = open ? 'flex' : 'none';
+    document.getElementById('sas-icon').className = open ? 'bi bi-x-lg' : 'bi bi-chat-dots-fill';
+    document.getElementById('sas-badge').style.display = 'none';
+    if (open) document.getElementById('sas-input').focus();
+  };
+
+  window.sasSend = async function(preset) {
+    const input = document.getElementById('sas-input');
+    const msg = (preset || input.value).trim();
+    if (!msg) return;
+
+    input.value = '';
+    document.getElementById('sas-send').disabled = true;
+    document.getElementById('sas-quick').style.display = 'none';
+
+    appendMsg('user', msg);
+    history.push({ role: 'user', content: msg });
+
+    const typingId = appendTyping();
+
+    try {
+      const res = await fetch(CHAT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+        body: JSON.stringify({ message: msg, history: history.slice(-6) }),
+      });
+      const data = await res.json();
+      removeTyping(typingId);
+      const reply = data.reply || 'Sorry, something went wrong. Please try again.';
+      appendMsg('bot', reply);
+      history.push({ role: 'assistant', content: reply });
+    } catch (e) {
+      removeTyping(typingId);
+      appendMsg('bot', 'Connection error. Please check your internet and try again.');
+    }
+
+    document.getElementById('sas-send').disabled = false;
+    document.getElementById('sas-input').focus();
+  };
+
+  function appendMsg(role, text) {
+    const box = document.getElementById('sas-messages');
+    const wrap = document.createElement('div');
+    wrap.className = `sas-msg ${role}`;
+    if (role === 'bot') {
+      wrap.innerHTML = `
+        <div style="width:28px;height:28px;font-size:.75rem;background:linear-gradient(135deg,#c0392b,#8b1a12);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div class="sas-bubble-text">${escHtml(text)}</div>`;
+    } else {
+      wrap.innerHTML = `<div class="sas-bubble-text">${escHtml(text)}</div>`;
+    }
+    box.appendChild(wrap);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function appendTyping() {
+    const box = document.getElementById('sas-messages');
+    const id = 'typing-' + Date.now();
+    box.insertAdjacentHTML('beforeend', `
+      <div class="sas-msg bot sas-typing" id="${id}">
+        <div style="width:28px;height:28px;font-size:.75rem;background:linear-gradient(135deg,#c0392b,#8b1a12);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div class="sas-bubble-text">Typing…</div>
+      </div>`);
+    box.scrollTop = box.scrollHeight;
+    return id;
+  }
+
+  function removeTyping(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
+
+  function escHtml(str) {
+    return str
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\n/g,'<br>');
+  }
+
+  // Show badge after 3s to draw attention
+  setTimeout(() => {
+    if (!open) document.getElementById('sas-badge').style.display = 'block';
+  }, 3000);
+})();
+</script>

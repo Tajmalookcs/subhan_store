@@ -29,6 +29,9 @@ urlpatterns = [
     # Point of Sale (Phase 7) — namespace: 'pos'
     path('', include('apps.pos.urls')),
 
+    # AI Chat — Phase 9
+    path('', include('apps.ai_chat.urls')),
+
     # REST API — enabled per phase
     # path('api/v1/', include('config.api_urls')),
 ]

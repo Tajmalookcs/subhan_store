@@ -47,7 +47,7 @@ LOCAL_APPS = [
     # 'apps.delivery',    # Phase 8
     # 'apps.finance',     # Phase 8
     # 'apps.loyalty',     # Phase 8
-    # 'apps.ai_chat',     # Phase 9
+    'apps.ai_chat',      # Phase 9
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
