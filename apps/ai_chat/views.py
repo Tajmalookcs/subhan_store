@@ -111,8 +111,14 @@ def chat_message(request):
         return JsonResponse({'reply': reply})
 
     except requests.exceptions.Timeout:
-        return JsonResponse({'reply': 'Sorry, the assistant is taking too long to respond. Please try again.'})
+        return JsonResponse({'reply': 'Sorry, the assistant is taking too long. Please try again.'})
     except requests.exceptions.RequestException as e:
-        return JsonResponse({'reply': 'Assistant is temporarily unavailable. Please contact the store directly.'})
-    except (KeyError, IndexError):
-        return JsonResponse({'reply': 'Unexpected response from AI service. Please try again.'})
+        debug = getattr(settings, 'DEBUG', False)
+        detail = ''
+        if hasattr(e, 'response') and e.response is not None:
+            detail = f' [{e.response.status_code}] {e.response.text[:300]}'
+        if debug:
+            return JsonResponse({'reply': f'API error:{detail}'})
+        return JsonResponse({'reply': f'Assistant unavailable.{detail}'})
+    except (KeyError, IndexError) as e:
+        return JsonResponse({'reply': f'Unexpected response format: {e}'})
