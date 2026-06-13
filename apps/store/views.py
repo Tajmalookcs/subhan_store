@@ -211,9 +211,11 @@ def product_detail(request, slug):
 def cart_detail(request):
     cart = get_or_create_cart(request)
     items = cart.items.select_related('product', 'variant').prefetch_related('product__images')
+    subtotal = cart.subtotal
     context = {
         'cart': cart,
         'items': items,
+        'remaining_for_free_delivery': max(0, 2000 - subtotal),
     }
     return render(request, 'store/cart.html', context)
 
